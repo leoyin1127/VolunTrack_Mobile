@@ -3,11 +3,13 @@ import { createStackNavigator } from 'react-navigation-stack';
 
 import SearchScreen from './src/screens/SearchScreen';
 import ResultsShowScreen from './src/screens/ResultsShowScreen';
+import TodoList from "./src/screens/TodoList";
 
 const navigator = createStackNavigator(
   {
     Search: SearchScreen,
     ResultsShow: ResultsShowScreen,
+    Todo: TodoList,
   },
   {
     initialRouteName: 'Search',
