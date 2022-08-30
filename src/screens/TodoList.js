@@ -38,13 +38,13 @@ const TodoList = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1E1A3C',
+        backgroundColor: '#F0F5F9',
     },
     heading: {
-        color: '#fff',
+        color: '#1E2022',
         fontSize: 20,
         fontWeight: '600',
-        marginTop: 30,
+        marginTop: 60,
         marginBottom: 10,
         marginLeft: 20,
     },

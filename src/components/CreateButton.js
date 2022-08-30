@@ -4,7 +4,7 @@ import { withNavigation} from 'react-navigation';
 
 const CreateButton = ({ title, navigation }) => (
     <TouchableOpacity 
-        onPress = { () => navigation.navigate('Create')} 
+        onPress = { () => navigation.navigate('Todo')} 
         style = {styles.buttonContainer}
       >
       <Text style={styles.buttonText}> {title} </Text>
@@ -14,7 +14,7 @@ const CreateButton = ({ title, navigation }) => (
   const styles = StyleSheet.create({
     buttonContainer: {
       elevation: 8,
-      backgroundColor: "#3CB371",
+      backgroundColor: "#C9D6DF",
       borderRadius: 10,
       paddingVertical: 10,
       paddingHorizontal: 12,
