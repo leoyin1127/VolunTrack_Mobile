@@ -1,22 +1,27 @@
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 
-import SearchScreen from './src/screens/SearchScreen';
-import ResultsShowScreen from './src/screens/ResultsShowScreen';
-import TodoList from "./src/screens/TodoList";
+import NavigatorScreen from './src/screens/NavigatorScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import CreateScreen from './src/screens/CreateScreen';
+import MenuScreen from './src/screens/MenuScreen';
+import MailScreen from './src/screens/MailScreen';
+import UserScreen from './src/screens/UserScreen';
+import PostScreen from './src/screens/PostScreen';
 
-const navigator = createStackNavigator(
-  {
-    Search: SearchScreen,
-    ResultsShow: ResultsShowScreen,
-    Todo: TodoList,
-  },
-  {
-    initialRouteName: 'Search',
-    defaultNavigationOptions: {
-      title: 'Business Search',
-    },
+const navigator = createStackNavigator ({
+  Home: HomeScreen,
+  Create: CreateScreen,
+  Menu: MenuScreen,
+  Mail: MailScreen,
+  User: UserScreen,
+  Post: PostScreen,
+  Navigator: NavigatorScreen 
+}, {
+  initialRouteName: 'Navigator',
+  defaultNavigationOptions: {
+    header: null
   }
-);
+});
 
-export default createAppContainer(navigator);
+export default createAppContainer(navigator)
