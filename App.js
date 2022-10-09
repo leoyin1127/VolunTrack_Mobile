@@ -22,7 +22,7 @@ const navigator = createStackNavigator ({
 }, {
   initialRouteName: 'Navigator',
   defaultNavigationOptions: {
-    header: null
+    headerShown: false
   }
 });
 
