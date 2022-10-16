@@ -8,6 +8,7 @@ import MailScreen from '../screens/MailScreen';
 import UserScreen from '../screens/UserScreen';
 import PostScreen from '../screens/PostScreen';
 import TodoList from '../screens/TodoList';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 const BottomTab = createBottomTabNavigator();
 
@@ -33,14 +34,8 @@ const CustomTabBarButton = ({children, onPress}) => (
 const BottomNavigator = () => {
     return(
         <BottomTab.Navigator
-          screenOptions = {{
-            "tabBarShowLabel": false,
-            "tabBarStyle": [
-              {
-                "display": "flex"
-              },
-              null
-            ]
+          tabBarOptions = {{
+            showLabel: false,
           }}
         >
             <BottomTab.Screen name = "VolunTrack" component= {HomeScreen} options ={{
@@ -89,7 +84,7 @@ const BottomNavigator = () => {
                     <CustomTabBarButton {...props} />
                 )
             }}/>
-            <BottomTab.Screen name = "Mail" component= {MailScreen} options ={{
+            <BottomTab.Screen name = "Mail" component= {NotificationsScreen} options ={{
                 tabBarIcon: ({focused}) => (
                     <View style = {{alignItems: 'center', justifyContent: 'center', top: 10}}>
                         <Image
