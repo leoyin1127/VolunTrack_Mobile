@@ -14,13 +14,13 @@ export default class Notifications extends Component {
     super(props);
     this.state = {
       data:[
-        {id:3, image: "https://bootdey.com/img/Content/avatar/avatar7.png", name:"Demo", text:"Demo", attachment:"https://via.placeholder.com/100x100/FFB6C1/000000"},
-        {id:2, image: "https://bootdey.com/img/Content/avatar/avatar6.png", name:"Demo", text:"Demo", attachment:"https://via.placeholder.com/100x100/20B2AA/000000"},
-        {id:4, image: "https://bootdey.com/img/Content/avatar/avatar2.png", name:"Demo", text:"Demo", attachment:""},
-        {id:5, image: "https://bootdey.com/img/Content/avatar/avatar3.png", name:"Demo", text:"Demo", attachment:""},
-        {id:1, image: "https://bootdey.com/img/Content/avatar/avatar1.png", name:"Demo", text:"Demo", attachment:"https://via.placeholder.com/100x100/7B68EE/000000"},
-        {id:6, image: "https://bootdey.com/img/Content/avatar/avatar4.png", name:"Demo", text:"Demo", attachment:""},
-        {id:7, image: "https://bootdey.com/img/Content/avatar/avatar5.png", name:"Demo", text:"Demo", attachment:""},
+        {id:3, image: "https://bootdey.com/img/Content/avatar/avatar7.png", name:"Demo", text:" As a regular classroom volunteer you will work under the guidance of our RECE teachers and the therapy staff and be an important part of the classroom team. ", attachment:"https://via.placeholder.com/100x100/FFB6C1/000000"},
+        {id:2, image: "https://bootdey.com/img/Content/avatar/avatar6.png", name:"Demo", text:" As a regular classroom volunteer you will work under the guidance of our RECE teachers and the therapy staff and be an important part of the classroom team. ", attachment:"https://via.placeholder.com/100x100/20B2AA/000000"},
+        {id:4, image: "https://bootdey.com/img/Content/avatar/avatar2.png", name:"Demo", text:" As a regular classroom volunteer you will work under the guidance of our RECE teachers and the therapy staff and be an important part of the classroom team. ", attachment:""},
+        {id:5, image: "https://bootdey.com/img/Content/avatar/avatar3.png", name:"Demo", text:" As a regular classroom volunteer you will work under the guidance of our RECE teachers and the therapy staff and be an important part of the classroom team. ", attachment:""},
+        {id:1, image: "https://bootdey.com/img/Content/avatar/avatar1.png", name:"Demo", text:" As a regular classroom volunteer you will work under the guidance of our RECE teachers and the therapy staff and be an important part of the classroom team. ", attachment:"https://via.placeholder.com/100x100/7B68EE/000000"},
+        {id:6, image: "https://bootdey.com/img/Content/avatar/avatar4.png", name:"Demo", text:" As a regular classroom volunteer you will work under the guidance of our RECE teachers and the therapy staff and be an important part of the classroom team. ", attachment:""},
+        {id:7, image: "https://bootdey.com/img/Content/avatar/avatar5.png", name:"Demo", text:" As a regular classroom volunteer you will work under the guidance of our RECE teachers and the therapy staff and be an important part of the classroom team. ", attachment:""},
       ]
     }
   }
