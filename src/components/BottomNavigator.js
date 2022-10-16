@@ -33,8 +33,14 @@ const CustomTabBarButton = ({children, onPress}) => (
 const BottomNavigator = () => {
     return(
         <BottomTab.Navigator
-          tabBarOptions = {{
-            showLabel: false,
+          screenOptions = {{
+            "tabBarShowLabel": false,
+            "tabBarStyle": [
+              {
+                "display": "flex"
+              },
+              null
+            ]
           }}
         >
             <BottomTab.Screen name = "VolunTrack" component= {HomeScreen} options ={{
