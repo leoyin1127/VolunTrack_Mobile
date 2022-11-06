@@ -9,6 +9,7 @@ import MailScreen from './src/screens/MailScreen';
 import UserScreen from './src/screens/UserScreen';
 import PostScreen from './src/screens/PostScreen';
 import TodoList from './src/screens/TodoList';
+import ResultsShowScreen from "./src/screens/ResultsShowScreen";
 
 const navigator = createStackNavigator ({
   Home: HomeScreen,
@@ -18,7 +19,8 @@ const navigator = createStackNavigator ({
   User: UserScreen,
   Post: PostScreen,
   Navigator: NavigatorScreen,
-  Todo: TodoList
+  Todo: TodoList,
+  Results: ResultsShowScreen
 }, {
   initialRouteName: 'Navigator',
   defaultNavigationOptions: {
