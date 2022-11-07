@@ -37,7 +37,7 @@ const SearchBar = (navigation) => {
                style = {styles.inputStyle}
                placeholder = "Search" placeholderTextColor = 'gray'
                onChangeText={text => setKeywords(text)}
-               onSubmitEditing={a => console.log(`onSubmitEditing: ${keywords}`) }
+               onSubmitEditing={a => search(keywords)}
             />
             <EvilIcons name = "search" style = {styles.iconStyle} />
         </View>
