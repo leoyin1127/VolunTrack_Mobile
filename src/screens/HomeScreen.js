@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import SearchBar from '../components/SearchBar';
 import CreateButton from '../components/CreateButton';
 import useResults from "../hooks/useResults";
-import {collection, getDocs, query, where} from "firebase/firestore";
+import {collection, getDocs, getFirestore, query, where} from "firebase/firestore";
 import {app} from "../../firebaseConfig"
 
 const db = getFirestore(app);
