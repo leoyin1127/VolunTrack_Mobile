@@ -1,13 +1,45 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { EvilIcons } from '@expo/vector-icons';
+import {collection, getDocs, query, where} from "firebase/firestore";
+
+import useResults from "../hooks/useResults";
+import {collection, getDocs, getFirestore, query, where} from "firebase/firestore";
+import {app} from "../../firebaseConfig"
+
+const db = getFirestore(app);
 
 const SearchBar = ({}) => {
+
+
+    const [results, setResults] = useResults();
+    const [keywords, setKeywords] = React.useState('')
+
+
+
+    async function search(term){
+        const listingsCol = collection(db, 'listings')
+        const QTitle = query(listingsCol, where("title", "==", term));
+        const QDescription = query(listingsCol, where("description", "==", term));
+
+        const QTitleSnapshot = await getDocs(QTitle);
+        const QDescriptionSnapshot = await getDocs(QDescription);
+
+        const q = QTitleSnapshot.concat(QDescriptionSnapshot)
+
+        setResults(q)
+
+        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+
+        navigation.navigate("Results")
+    }
+
     return (
         <View style = {styles.backgroundStyle}>
             <TextInput
-               style = {styles.inputStyle} 
+               style = {styles.inputStyle}
                placeholder = "Search" placeholderTextColor = 'gray'
+               onSubmitEditing ={(text)=>search(text)}
             />
             <EvilIcons name = "search" style = {styles.iconStyle} />
         </View>
@@ -15,7 +47,7 @@ const SearchBar = ({}) => {
 };
 
 const styles = StyleSheet.create({
-    backgroundStyle: { 
+    backgroundStyle: {
         backgroundColor: '#DCDCDC',
         height: 50,
         borderRadius: 10,
