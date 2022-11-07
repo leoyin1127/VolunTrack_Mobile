@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { EvilIcons } from '@expo/vector-icons';
-import {collection, getDocs, query, where} from "firebase/firestore";
+import {collection, getDocs, getFirestore, query, where} from "firebase/firestore";
 import useResults from "../hooks/useResults";
 import {app} from "../../firebaseConfig"
 
