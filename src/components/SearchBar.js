@@ -10,13 +10,11 @@ const db = getFirestore(app);
 
 const SearchBar = (navigation) => {
 
-
     const [results, setResults] = useResults();
     const [keywords, setKeywords] = React.useState('')
 
-
-
     async function search(term){
+
         const listingsCol = collection(db, 'listings')
         const QTitle = query(listingsCol, where("title", "==", term));
         const QDescription = query(listingsCol, where("description", "==", term));
@@ -38,8 +36,8 @@ const SearchBar = (navigation) => {
             <TextInput
                style = {styles.inputStyle}
                placeholder = "Search" placeholderTextColor = 'gray'
-               onChangeText={text => this.setState({ text })}
-               onSubmitEditing={a => console.log(`onSubmitEditing: ${this.state.text}`) }
+               onChangeText={text => setKeywords(text)}
+               onSubmitEditing={a => console.log(`onSubmitEditing: ${keywords}`) }
             />
             <EvilIcons name = "search" style = {styles.iconStyle} />
         </View>
