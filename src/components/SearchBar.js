@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { EvilIcons } from '@expo/vector-icons';
+import {withNavigation} from "react-navigation";
 import {collection, getDocs, getFirestore, query, where} from "firebase/firestore";
 import useResults from "../hooks/useResults";
 import {app} from "../../firebaseConfig"
 
 const db = getFirestore(app);
 
-const SearchBar = ({}) => {
+const SearchBar = (navigation) => {
 
 
     const [results, setResults] = useResults();
@@ -67,4 +68,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default SearchBar;
+export default withNavigation(SearchBar);
