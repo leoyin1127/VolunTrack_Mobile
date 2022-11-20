@@ -3,10 +3,10 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 
 const PostScreen = ({navigation}) => {
     return <View style = {styles.container}>
-        <Text>Post Screen!</Text>
+        <Text>Post Screen</Text>
         <Button
           title = "Click Here!"
-          onPress = {() => alert('Button Clicked!')}
+          onPress = {() => alert('Coming soon!')}
       />
     </View>
 }
