@@ -10,6 +10,7 @@ import UserScreen from './src/screens/UserScreen';
 import PostScreen from './src/screens/PostScreen';
 import TodoList from './src/screens/TodoList';
 import ResultsShowScreen from "./src/screens/ResultsShowScreen";
+import LoginScreen from './src/screens/LoginScreen';
 
 const navigator = createStackNavigator ({
   Home: HomeScreen,
@@ -20,9 +21,10 @@ const navigator = createStackNavigator ({
   Post: PostScreen,
   Navigator: NavigatorScreen,
   Todo: TodoList,
-  Results: ResultsShowScreen
+  Login: LoginScreen,
+  Results: ResultsShowScreen,
 }, {
-  initialRouteName: 'Navigator',
+  initialRouteName: 'Login',
   defaultNavigationOptions: {
     headerShown: false
   }
