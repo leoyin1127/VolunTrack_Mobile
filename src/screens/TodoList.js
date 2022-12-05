@@ -61,12 +61,11 @@ const TodoList = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F0F5F9',
+        backgroundColor: '#F2F2F2',
     },
     heading: {
-        color: '#1E2022',
+        color: '#000',
         fontSize: 20,
-        fontWeight: '600',
         marginTop: 60,
         marginBottom: 10,
         marginLeft: 20,

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 
 import SearchBar from '../components/SearchBar';
 import CreateButton from '../components/CreateButton';
+import LoginPageButton from "../components/LoginPageButton";
 
 const HomeScreen = () => {
     return <View>
@@ -10,6 +11,7 @@ const HomeScreen = () => {
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
         <Text style = {styles.bottomText}>Volunteering tasks yet...</Text>
         <CreateButton title="Create a New Task!"/>
+        <LoginPageButton title="Back to Login Page"/>
     </View>
 }
 
