@@ -18,14 +18,16 @@ const styles =  StyleSheet.create({
         fontSize: 15,
         alignSelf: 'center',
         marginTop: 100,
-        color: '#1E2022'
+        color: '#1E2022',
+        fontFamily: "HelveticaNeue"
     },
     bottomText: { 
         fontSize: 15,
         alignSelf: 'center',
         marginTop: 5,
         marginBottom: 120,
-        color: '#1E2022'
+        color: '#1E2022',
+        fontFamily: "HelveticaNeue"
     },
    
 });

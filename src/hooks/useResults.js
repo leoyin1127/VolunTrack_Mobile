@@ -10,9 +10,11 @@ export default () => {
     try {
       const response = await yelp.get('/search', {
         params: {
-          limit: 50,
-          term: 'volunteer',
-          location: 'toronto'
+          limit: 30,
+          // term: 'volunteer',
+          location: 'toronto',
+          // term: searchTerm,
+          categories: 'nonprofit, All'
         }
       });
       setResults(response.data.businesses);
@@ -30,4 +32,3 @@ export default () => {
 
   return [searchApi, results, errorMessage];
 };
-

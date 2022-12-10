@@ -24,7 +24,10 @@ const styles = StyleSheet.create({
     marginBottom: 5
   },
   name: {
-    fontWeight: 'bold'
+    marginTop: 3,
+    fontWeight: 'bold',
+    fontFamily: "HelveticaNeue",
+    // color: "#52575D"
   }
 });
 

@@ -22,15 +22,18 @@ const MenuScreen = () => {
         onTermSubmit={() => searchApi(term)}
       />
       {errorMessage ? <Text>{errorMessage}</Text> : null}
+      <Text></Text>
       <ScrollView>
         <ResultsList results={filterResultsByRating(5)}
-          title="Excellent oppurtunities!"
+          title="Excellent oppurtunities! - 5 stars"
         />
+        <Text></Text>
         <ResultsList results={filterResultsByRating(4)} 
-          title="Great oppurtunities!" />
-
+          title="Great oppurtunities! - 4 stars" 
+        />
+        <Text></Text>
         <ResultsList results={filterResultsByRating(3)}
-          title="Good oppurtunities!"
+          title="Good oppurtunities! - 3 stars"
         />
       </ScrollView>
     </>

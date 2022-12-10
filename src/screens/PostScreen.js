@@ -3,9 +3,9 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 
 const PostScreen = ({navigation}) => {
     return <View style = {styles.container}>
-        <Text>Post Screen</Text>
+        <Text>Comming Soon!</Text>
         <Button
-          title = "Click Here!"
+          title = "Click Here"
           onPress = {() => alert('Coming soon!')}
       />
     </View>

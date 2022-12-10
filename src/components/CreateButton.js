@@ -15,7 +15,7 @@ const CreateButton = ({ title, navigation }) => (
     buttonContainer: {
       elevation: 8,
       backgroundColor: "#C9D6DF",
-      borderRadius: 10,
+      borderRadius: 30,
       paddingVertical: 10,
       paddingHorizontal: 12,
       alignSelf: 'center',
@@ -28,6 +28,7 @@ const CreateButton = ({ title, navigation }) => (
       marginVertical: 10,
       marginHorizontal: 30,
       alignSelf: "center",
+      fontFamily: "HelveticaNeue"
     }
   });
 

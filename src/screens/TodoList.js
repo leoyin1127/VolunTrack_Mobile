@@ -61,7 +61,7 @@ const TodoList = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F0F5F9',
+        // backgroundColor: '#1E2022',
     },
     heading: {
         color: '#1E2022',
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
         marginTop: 60,
         marginBottom: 10,
         marginLeft: 20,
+        
     },
     scrollView: {
         marginBottom: 70,
