@@ -13,7 +13,7 @@ export default () => {
           limit: 30,
           // term: 'volunteer',
           location: 'toronto',
-          // term: searchTerm,
+          term: searchTerm,
           categories: 'nonprofit, All'
         }
       });
