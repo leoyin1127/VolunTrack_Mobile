@@ -12,21 +12,23 @@ import ResultsDetail from './ResultsDetail';
 const ResultsList = ({ title, results, navigation }) => {
   if (!results.length) {
     return null;
-  }
+  } 
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
+      <Text></Text>
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
         data={results}
         keyExtractor={result => result.id}
+        style={styles.flatlist}
         renderItem={({ item }) => {
           return (
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('ResultsShow', { id: item.id })
+                navigation.navigate('Results', { id: item.id })
               }
             >
               <ResultsDetail result={item} />
@@ -42,11 +44,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginLeft: 15,
-    marginBottom: 5
+    marginLeft: 20,
+    marginBottom: 5,
+    fontFamily: "HelveticaNeue",
   },
   container: {
-    marginBottom: 10
+    marginBottom: 5
+  },
+  flatlist: {
+    marginLeft: 2
   }
 });
 

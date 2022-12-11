@@ -21,19 +21,16 @@ const SearchBar = (navigation) => {
 
         const QTitleSnapshot = await getDocs(QTitle);
         const QDescriptionSnapshot = await getDocs(QDescription);
-
         const q = QTitleSnapshot.concat(QDescriptionSnapshot)
 
         setResults(q)
-
-        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-
         navigation.navigate("Results")
-    }
-
+const SearchBar = ({}) => {
     return (
         <View style = {styles.backgroundStyle}>
             <TextInput
+               autoCapitalize="none"
+               autoCorrect={false}
                style = {styles.inputStyle}
                placeholder = "Search" placeholderTextColor = 'gray'
                onChangeText={text => setKeywords(text)}
@@ -67,4 +64,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default withNavigation(SearchBar);
+export default SearchBar;

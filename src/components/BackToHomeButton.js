@@ -16,18 +16,19 @@ const styles = StyleSheet.create({
         elevation: 8,
         backgroundColor: "#C9D6DF",
         borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
+        paddingVertical: 0,
+        paddingHorizontal: 0,
         alignSelf: 'center',
-        marginVertical: 40
+        marginVertical: 10
     },
 
     buttonText: {
-        fontSize: 18,
+        fontSize: 15,
         color: "#000000",
         marginVertical: 10,
         marginHorizontal: 30,
         alignSelf: "center",
+        fontFamily: "HelveticaNeue",
     }
 });
 

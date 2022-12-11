@@ -2,6 +2,8 @@ import React from "react";
 import { StyleSheet, Text, View, SafeAreaView, Image, ScrollView } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
+const imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/1200px-Default_pfp.svg.png";
+
 export default function UserScreen(){
     return (
         <SafeAreaView style={styles.container}>
@@ -12,20 +14,20 @@ export default function UserScreen(){
 
                 <View style={{ alignSelf: "center" }}>
                     <View style={styles.profileImage}>
-                        <Image source={require('../../assets/profile-pic.jpg')} style={styles.image} resizeMode ="center"></Image>
+                        <Image source={{uri: imageUrl}} style={styles.image} resizeMode ="center"></Image>
                     </View>
-                    <View style={styles.dm}>
+                    {/* <View style={styles.dm}>
                         <MaterialIcons name="chat" size={18} color="#DFD8C8"></MaterialIcons>
-                    </View>
-                    <View style={styles.active}></View>
-                    <View style={styles.add}>
+                    </View> */}
+                    {/* <View style={styles.active}></View> */}
+                    {/* <View style={styles.add}>
                         <Ionicons name="ios-add" size={48} color="#DFD8C8" style={{ marginTop: 6, marginLeft: 2 }}></Ionicons>
-                    </View>
+                    </View> */}
                 </View>
 
                 <View style={styles.infoContainer}>
                     <Text style={[styles.text, { fontWeight: "200", fontSize: 36 }]}>Your Profile!</Text>
-                    <Text style={[styles.text, { color: "#AEB5BC", fontSize: 14 }]}>VolunTrack User!</Text>
+                    <Text style={[styles.text, { color: "#AEB5BC", fontSize: 14 }]}>VolunTrack User! (Demo)</Text>
                 </View>
 
                 <View style={{ marginTop: 32 }}>

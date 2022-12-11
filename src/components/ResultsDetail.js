@@ -6,9 +6,9 @@ const ResultsDetail = ({ result }) => {
     <View style={styles.container}>
       <Image style={styles.image} source={{ uri: result.image_url }} />
       <Text style={styles.name}>{result.name}</Text>
-      <Text>
-        {result.rating} Stars, {result.review_count} Reviews
-      </Text>
+      <Text>{result.location.address1}</Text> 
+      <Text>{result.rating} Stars, {result.review_count} Reviews</Text>
+      <Text>Phone: {result.display_phone}</Text>
     </View>
   );
 };
@@ -24,7 +24,10 @@ const styles = StyleSheet.create({
     marginBottom: 5
   },
   name: {
-    fontWeight: 'bold'
+    marginTop: 3,
+    fontWeight: 'bold',
+    fontFamily: "HelveticaNeue",
+    // color: "#52575D"
   }
 });
 
