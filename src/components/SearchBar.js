@@ -24,7 +24,8 @@ const SearchBar = (navigation) => {
         const q = QTitleSnapshot.concat(QDescriptionSnapshot)
 
         setResults(q)
-        navigation.navigate("Results")
+        navigation.navigate("Results"
+    }
 const SearchBar = ({}) => {
     return (
         <View style = {styles.backgroundStyle}>
