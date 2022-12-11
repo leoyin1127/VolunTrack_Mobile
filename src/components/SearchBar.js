@@ -13,7 +13,7 @@ const SearchBar = (navigation) => {
     const [results, setResults] = useResults();
     const [keywords, setKeywords] = React.useState('')
 
-    async function search(term){
+    async function search(term) {
 
         const listingsCol = collection(db, 'listings')
         const QTitle = query(listingsCol, where("title", "==", term));
@@ -26,6 +26,7 @@ const SearchBar = (navigation) => {
         setResults(q)
         navigation.navigate("Results")
     }
+}
 const SearchBar = ({}) => {
     return (
         <View style = {styles.backgroundStyle}>
