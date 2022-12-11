@@ -25,15 +25,15 @@ const MenuScreen = () => {
       <Text></Text>
       <ScrollView>
         <ResultsList results={filterResultsByRating(5)}
-          title="Excellent oppurtunities! - 5 stars"
+          title="Excellent opportunities! - 5 stars"
         />
         <Text></Text>
-        <ResultsList results={filterResultsByRating(4)} 
-          title="Great oppurtunities! - 4 stars" 
+        <ResultsList results={filterResultsByRating(4)}
+          title="Great opportunities! - 4 stars"
         />
         <Text></Text>
         <ResultsList results={filterResultsByRating(3)}
-          title="Good oppurtunities! - 3 stars"
+          title="Good opportunities! - 3 stars"
         />
       </ScrollView>
     </>
