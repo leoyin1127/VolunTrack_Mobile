@@ -1,15 +1,12 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import SearchBar from '../components/SearchBar';
 import CreateButton from '../components/CreateButton';
-import useResults from "../hooks/useResults";
-import {withNavigation} from "react-navigation";
-
-const [term, setTerm] = useState('');
 
 const HomeScreen = ({navigation}) => {
     return <View>
+<<<<<<< HEAD
         <SearchBar
             term={term}
             onTermChange={setTerm}
@@ -17,6 +14,9 @@ const HomeScreen = ({navigation}) => {
                 navigation.navigate('Menu');
             }}*/
         />
+=======
+        <SearchBar />
+>>>>>>> parent of a0ab1e2 (fix)
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
         <Text style = {styles.bottomText}>Volunteering tasks yet...</Text>
         <CreateButton title="Create a New Task!"/>
@@ -24,14 +24,14 @@ const HomeScreen = ({navigation}) => {
 }
 
 const styles =  StyleSheet.create({
-    topText: {
+    topText: { 
         fontSize: 15,
         alignSelf: 'center',
         marginTop: 100,
         color: '#1E2022',
         fontFamily: "HelveticaNeue"
     },
-    bottomText: {
+    bottomText: { 
         fontSize: 15,
         alignSelf: 'center',
         marginTop: 5,
@@ -39,7 +39,11 @@ const styles =  StyleSheet.create({
         color: '#1E2022',
         fontFamily: "HelveticaNeue"
     },
-
+   
 });
 
+<<<<<<< HEAD
 export default withNavigation(HomeScreen);
+=======
+export default HomeScreen;
+>>>>>>> parent of a0ab1e2 (fix)
