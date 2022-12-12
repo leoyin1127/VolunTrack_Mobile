@@ -10,7 +10,11 @@ const HomeScreen = ({navigation}) => {
         <SearchBar
             term={term}
             onTermChange={setTerm}
+<<<<<<< HEAD
             onTermSubmit={() => {
+=======
+            onTermSubmit={function (){
+>>>>>>> parent of 7cd7321 (fix)
                 navigation.navigate('Menu');
             }}
         />
