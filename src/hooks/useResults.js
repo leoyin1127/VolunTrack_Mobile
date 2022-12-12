@@ -7,6 +7,8 @@ export default () => {
 
   const searchApi = async searchTerm => {
     console.log('Starting search!');
+    if(!searchTerm)
+      searchTerm = null;
     try {
       const response = await yelp.get('/search', {
         params: {
