@@ -1,15 +1,24 @@
 import React, {useContext, useState} from 'react';
-//import 'react-native';
-import {View, Text, Button, StyleSheet, TouchableOpacity, Image, Platform} from 'react-native';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    Image,
+    Platform,
+    StyleSheet,
+    ScrollView
+} from 'react-native';
 import FormInput from '../components/FormInput';
 import FormButton from '../components/FormButton';
 import SocialButton from '../components/SocialButton';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import {ScrollView} from "react-native";
+import {AuthContext} from '../navigation/AuthProvider';
 
 const LoginScreen = ({navigation}) => {
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
+
+    const {login, googleLogin, fbLogin} = useContext(AuthContext);
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <Image
@@ -38,8 +47,7 @@ const LoginScreen = ({navigation}) => {
 
             <FormButton
                 buttonTitle="Sign In"
-                onPress={() => navigation.navigate('Navigator')}
-                //onPress={() => login(email, password)}
+                onPress={() => login(email, password)}
             />
 
             <TouchableOpacity style={styles.forgotButton} onPress={() => {}}>
@@ -53,7 +61,7 @@ const LoginScreen = ({navigation}) => {
                         btnType="facebook"
                         color="#4867aa"
                         backgroundColor="#e6eaf4"
-                        //onPress={() => fbLogin()}
+                        onPress={() => fbLogin()}
                     />
 
                     <SocialButton
@@ -61,7 +69,7 @@ const LoginScreen = ({navigation}) => {
                         btnType="google"
                         color="#de4d41"
                         backgroundColor="#f5e7ea"
-                        //onPress={() => googleLogin()}
+                        onPress={() => googleLogin()}
                     />
                 </View>
             ) : null}
@@ -70,14 +78,14 @@ const LoginScreen = ({navigation}) => {
                 style={styles.forgotButton}
                 onPress={() => navigation.navigate('Signup')}>
                 <Text style={styles.navButtonText}>
-                    Don't have an account? Create here
+                    Don't have an acount? Create here
                 </Text>
             </TouchableOpacity>
         </ScrollView>
     );
 };
 
-    export default LoginScreen;
+export default LoginScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -92,6 +100,7 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
     },
     text: {
+        fontFamily: 'Kufam-SemiBoldItalic',
         fontSize: 28,
         marginBottom: 10,
         color: '#051d5f',
@@ -106,5 +115,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '500',
         color: '#2e64e5',
+        fontFamily: 'Lato-Regular',
     },
 });
