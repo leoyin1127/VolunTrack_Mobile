@@ -6,13 +6,13 @@ import CreateButton from '../components/CreateButton';
 import {withNavigation} from "react-navigation";
 
 const HomeScreen = ({navigation}) => {
-    const [searchTerm, setSearchTerm] = useState('');
+    const [term, setTerm] = useState('');
     return <View>
         <SearchBar
-            term={searchTerm}
-            onTermChange={setSearchTerm}
+            term={term}
+            onTermChange={setTerm}
             onTermSubmit={() => {
-                navigation.navigate('Menu', {searchTerm});
+                navigation.navigate('Menu', {searchTerm: term});
             }}
         />
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
