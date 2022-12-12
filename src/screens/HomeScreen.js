@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 import SearchBar from '../components/SearchBar';
@@ -6,10 +6,13 @@ import CreateButton from '../components/CreateButton';
 import {withNavigation} from "react-navigation";
 
 const HomeScreen = ({navigation}) => {
+    const [searchTerm, setSearchTerm] = useState('');
     return <View>
         <SearchBar
+            term={searchTerm}
+            onTermChange={setSearchTerm}
             onTermSubmit={() => {
-                navigation.navigate('Menu');
+                navigation.navigate('Menu', {searchTerm});
             }}
         />
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
