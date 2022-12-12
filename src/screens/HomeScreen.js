@@ -10,9 +10,9 @@ const HomeScreen = ({navigation}) => {
         <SearchBar
             term={term}
             onTermChange={setTerm}
-/*            onTermSubmit={function (){
+            onTermSubmit={function (){
                 navigation.navigate('Menu');
-            }}*/
+            }}
         />
 =======
         <SearchBar />
