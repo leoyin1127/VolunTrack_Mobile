@@ -13,9 +13,9 @@ const HomeScreen = ({navigation}) => {
         <SearchBar
             term={term}
             onTermChange={setTerm}
-            onTermSubmit={function (){
+/*            onTermSubmit={function (){
                 navigation.navigate('Menu');
-            }}
+            }}*/
         />
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
         <Text style = {styles.bottomText}>Volunteering tasks yet...</Text>
