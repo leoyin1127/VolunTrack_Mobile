@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import SearchBar from '../components/SearchBar';
 import CreateButton from '../components/CreateButton';
 
+<<<<<<< HEAD
 const HomeScreen = ({navigation}) => {
     return <View>
 <<<<<<< HEAD
@@ -19,6 +20,11 @@ const HomeScreen = ({navigation}) => {
             }}
         />
 =======
+        <SearchBar />
+>>>>>>> parent of a0ab1e2 (fix)
+=======
+const HomeScreen = () => {
+    return <View>
         <SearchBar />
 >>>>>>> parent of a0ab1e2 (fix)
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
@@ -47,7 +53,11 @@ const styles =  StyleSheet.create({
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 export default withNavigation(HomeScreen);
+=======
+export default HomeScreen;
+>>>>>>> parent of a0ab1e2 (fix)
 =======
 export default HomeScreen;
 >>>>>>> parent of a0ab1e2 (fix)
