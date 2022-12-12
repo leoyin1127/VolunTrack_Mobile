@@ -5,7 +5,7 @@ import useResults from '../hooks/useResults';
 import ResultsList from '../components/ResultsList';
 
 const MenuScreen = ({route}) => {
-    const [term, setTerm] = useState(route.term);
+    const [term, setTerm] = useState(route.params.term);
     const [searchApi, results, errorMessage] = useResults();
 
     const filterResultsByRating = rating => {
@@ -15,7 +15,7 @@ const MenuScreen = ({route}) => {
     };
 
     if(route.term){
-        searchApi(route.term);
+        searchApi(route.params.term);
     }
 
     return (
