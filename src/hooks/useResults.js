@@ -7,6 +7,7 @@ export default () => {
 
   const searchApi = async searchTerm => {
     console.log('Starting search!');
+    console.log(searchTerm);
     if(!searchTerm)
       searchTerm = null;
     try {
