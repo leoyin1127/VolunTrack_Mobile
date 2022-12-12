@@ -8,14 +8,14 @@ import {withNavigation} from "react-navigation";
 
 const [term, setTerm] = useState('');
 
-const HomeScreen = () => {
+const HomeScreen = ({navigation}) => {
     return <View>
         <SearchBar
             term={term}
             onTermChange={setTerm}
-            onTermSubmit={() => withNavigation(function (navigation) {
-                navigation.navigate('Menu')
-            })}
+            onTermSubmit={() => {
+                navigation.navigate('Menu');
+            }}
         />
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
         <Text style = {styles.bottomText}>Volunteering tasks yet...</Text>
@@ -42,4 +42,4 @@ const styles =  StyleSheet.create({
 
 });
 
-export default HomeScreen;
+export default withNavigation(HomeScreen);
