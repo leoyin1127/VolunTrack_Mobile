@@ -12,7 +12,7 @@ const SearchBar = ({term, onTermChange, onTermSubmit}) => {
                placeholder = "Search" placeholderTextColor = 'gray'
                value={term}
                onChangeText={onTermChange}
-               onSubmitEditing={onTermSubmit}
+               onEndEditing={onTermSubmit}
             />
             <EvilIcons name = "search" style = {styles.iconStyle} />
         </View>
