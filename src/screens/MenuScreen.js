@@ -18,6 +18,7 @@ const MenuScreen = ({navigation, route}) => {
 
     const unsubscribe = navigation.addListener('focus', () => {
         setShouldSearch(true);
+        setTerm(searchTerm);
     });
 
 
