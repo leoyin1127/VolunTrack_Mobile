@@ -5,7 +5,7 @@ import useResults from '../hooks/useResults';
 import ResultsList from '../components/ResultsList';
 
 const MenuScreen = ({route}) => {
-    let { searchTerm } = route.params;
+    let searchTerm = route.params;
     const [shouldSearch, setShouldSearch] = useState(true);
     const [term, setTerm] = useState("");
     const [searchApi, results, errorMessage] = useResults();
