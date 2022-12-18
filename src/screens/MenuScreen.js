@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import SearchBar from '../components/SearchBar';
 import useResults from '../hooks/useResults';
 import ResultsList from '../components/ResultsList';
+import {withNavigation} from "react-navigation";
 
-const MenuScreen = ({route}) => {
-    let preterm = route.params;
-    const [searchTerm, SetSearchTerm] = useState(searchTerm);
+const MenuScreen = ({navigation, route}) => {
+    let searchTerm = route.params;
     const [shouldSearch, setShouldSearch] = useState(true);
     const [term, setTerm] = useState(searchTerm);
     const [searchApi, results, errorMessage] = useResults();
@@ -15,6 +15,11 @@ const MenuScreen = ({route}) => {
             return result.rating === rating;
         });
     };
+
+    const unsubscribe = navigation.addListener('focus', () => {
+        setShouldSearch(true);
+    });
+
 
     if(searchTerm && shouldSearch) {
         searchApi(searchTerm);
@@ -49,4 +54,4 @@ const MenuScreen = ({route}) => {
 
 const styles = StyleSheet.create({});
 
-export default MenuScreen;
+export default withNavigation(MenuScreen);
