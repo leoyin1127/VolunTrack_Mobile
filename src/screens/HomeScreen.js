@@ -14,8 +14,7 @@ const HomeScreen = ({navigation}) => {
             term={searchTerm}
             onTermChange={setSearchTerm}
             onTermSubmit={() => {
-                searchApi(searchTerm);
-                navigation.navigate('Menu', {searchTerm});
+                navigation.navigate('Menu', searchTerm);
             }}
         />
         <Text style = {styles.topText}>It looks like you haven't added any</Text>
