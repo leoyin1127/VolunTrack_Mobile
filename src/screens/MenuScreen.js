@@ -4,9 +4,8 @@ import SearchBar from '../components/SearchBar';
 import useResults from '../hooks/useResults';
 import ResultsList from '../components/ResultsList';
 
-const MenuScreen = ({route}) => {
-    let { searchTerm } = route.params;
-    const [term, setTerm] = useState(searchTerm);
+const MenuScreen = () => {
+    const [term, setTerm] = useState("");
     const [searchApi, results, errorMessage] = useResults();
     const filterResultsByRating = rating => {
         return results.filter(result => {
