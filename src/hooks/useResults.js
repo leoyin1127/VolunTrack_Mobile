@@ -30,7 +30,7 @@ export default () => {
   // is first rendered.  BAD CODE!
   // searchApi('pasta');
   useEffect(() => {
-    searchApi('');
+    results
   }, []);
 
   return [searchApi, results, errorMessage];
