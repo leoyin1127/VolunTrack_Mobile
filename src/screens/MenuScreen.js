@@ -15,7 +15,7 @@ const MenuScreen = ({route}) => {
         });
     };
 
-    if(searchTerm && shouldSearch) {
+    if(searchTerm) {
         searchApi(searchTerm);
         setShouldSearch(false);
     }
