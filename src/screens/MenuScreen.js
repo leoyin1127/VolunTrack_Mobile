@@ -14,11 +14,6 @@ const MenuScreen = ({route}) => {
         });
     };
 
-    if(searchTerm){
-        searchApi(searchTerm);
-        searchTerm = null;
-    }
-
     return (
         <>
             <SearchBar

@@ -4,14 +4,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import SearchBar from '../components/SearchBar';
 import CreateButton from '../components/CreateButton';
 import {withNavigation} from "react-navigation";
+import useResults from "../hooks/useResults";
 
 const HomeScreen = ({navigation}) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchApi, results, errorMessage] = useResults();
     return <View>
         <SearchBar
             term={searchTerm}
             onTermChange={setSearchTerm}
             onTermSubmit={() => {
+                searchApi(searchTerm);
                 navigation.navigate('Menu', {searchTerm});
             }}
         />
