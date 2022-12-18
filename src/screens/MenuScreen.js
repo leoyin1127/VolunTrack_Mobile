@@ -7,7 +7,7 @@ import ResultsList from '../components/ResultsList';
 const MenuScreen = ({route}) => {
     let searchTerm = route.params;
     const [shouldSearch, setShouldSearch] = useState(true);
-    const [term, setTerm] = useState("");
+    const [term, setTerm] = useState(searchTerm);
     const [searchApi, results, errorMessage] = useResults();
     const filterResultsByRating = rating => {
         return results.filter(result => {
