@@ -7,13 +7,16 @@ export default () => {
 
   const searchApi = async searchTerm => {
     console.log('Starting search!');
+    console.log(searchTerm);
+    if(!searchTerm)
+      searchTerm = null;
     try {
       const response = await yelp.get('/search', {
         params: {
           limit: 30,
           // term: 'volunteer',
           location: 'toronto',
-          // term: searchTerm,
+          term: searchTerm,
           categories: 'nonprofit, All'
         }
       });
@@ -27,7 +30,7 @@ export default () => {
   // is first rendered.  BAD CODE!
   // searchApi('pasta');
   useEffect(() => {
-    searchApi('pasta');
+    results
   }, []);
 
   return [searchApi, results, errorMessage];
