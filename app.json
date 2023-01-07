@@ -22,6 +22,8 @@
       "buildNumber": "2"
     },
     "android": {
+      "package": "com.leoyin.voluntrack",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFFFFF"
