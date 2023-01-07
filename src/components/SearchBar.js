@@ -8,7 +8,7 @@ const SearchBar = ({term, onTermChange, onTermSubmit}) => {
             <TextInput
                autoCapitalize="none"
                autoCorrect={false}
-               style = {styles.inputStyle} 
+               style = {styles.inputStyle}
                placeholder = "Search" placeholderTextColor = 'gray'
                value={term}
                onChangeText={onTermChange}
@@ -20,7 +20,7 @@ const SearchBar = ({term, onTermChange, onTermSubmit}) => {
 };
 
 const styles = StyleSheet.create({
-    backgroundStyle: { 
+    backgroundStyle: {
         backgroundColor: '#DCDCDC',
         height: 50,
         borderRadius: 20,
