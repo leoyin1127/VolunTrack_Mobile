@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { Keyboard, ScrollView, StyleSheet, Text, View } from 'react-native';
 import TaskInputField from '../components/TaskInputField';
 import TaskItem from '../components/TaskItem';
 import BackToHomeButton from '../components/BackToHomeButton';
-import { AsyncStorage } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TodoList = () => {
     let [tasks, setTasks] = useState([]);
@@ -11,32 +11,38 @@ const TodoList = () => {
     const addTask = (task) => {
         if (task == null) return;
         setTasks([...tasks, task]);
-        //storeTask(tasks);
+        storeTask([...tasks, task]);
         Keyboard.dismiss();
     }
 
-    // const storeTask = async (value) => {
-    //     try {
-    //         await AsyncStorage.setItem("Todos", JSON.stringify(value));
-    //         console.log(JSON.parse(await AsyncStorage.getItem("Todos")));
-    //
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
-    //
-    //  const getTask = async () => {
-    //     try {
-    //         const savedTasks = await AsyncStorage.getItem("Todos");
-    //         tasks = AsyncStorage.getItem("Todos", JSON.parse("Todos"));
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
+    const storeTask = async (value) => {
+        try {
+            await AsyncStorage.setItem("Todos", JSON.stringify(value));
+            console.log(JSON.parse(await AsyncStorage.getItem("Todos")));
+
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const deleteTask = (deleteIndex) => {
         setTasks(tasks.filter((value, index) => index != deleteIndex));
     }
+
+    const loadTasks = async () => {
+        try {
+            const storedTasks = await AsyncStorage.getItem("Todos");
+            if (storedTasks !== null) {
+                setTasks(JSON.parse(storedTasks));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    useEffect(() => {
+        loadTasks();
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -70,7 +76,7 @@ const styles = StyleSheet.create({
         marginTop: 60,
         marginBottom: 10,
         marginLeft: 20,
-        
+
     },
     scrollView: {
         marginBottom: 70,
