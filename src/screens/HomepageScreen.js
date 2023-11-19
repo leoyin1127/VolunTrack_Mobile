@@ -4,7 +4,6 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import colors from '../../assets/colors/colors';
 import HomepageSearchBar from '../components/HomepageSearchBar';
-import bottomnavigator from '../components/BottomNavigator'
 
 const HomepageScreen = ({navigation}) => {
     return(
