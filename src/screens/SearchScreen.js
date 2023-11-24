@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState, useEffect } from 'react';
 import { StatusBar, Image, StyleSheet, Text, TouchableOpacity, View, FlatList, } from 'react-native';
 import colors from '../../assets/colors/colors';
@@ -84,4 +85,126 @@ const styles = StyleSheet.create({
 });
 
 export default SearchScreen;
+=======
+import React, { useState, useEffect  } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+
+
+import colors from '../../assets/colors/colors';
+import SearchSearchBar from '../components/SearchSearchBar';
+import ResultsList from '../components/ResultsList'; 
+import { mockResults } from '../hooks/mockResults';
+
+
+const SearchScreen = ({navigation}) => {
+    const [cities, setCities] = useState([]);
+    const [selectedCity, setSelectedCity] = useState(null);
+    const [filteredResults, setFilteredResults] = useState(mockResults);
+
+    useEffect(() => {
+        // Fetch cities from the CountriesNow API
+        fetch('https://countriesnow.space/api/v0.1/countries')
+            .then((response) => response.json())
+            .then((data) => {
+                // Find Canada in the list of countries and get its cities
+                const canada = data.data.find(country => country.country === 'Canada');
+                if (canada && canada.cities) {
+                    const cityItems = canada.cities.map((city) => ({
+                        label: city,
+                        value: city,
+                    }));
+                    setCities(cityItems);
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching cities:', error);
+                // Handle the error appropriately in your app
+            });
+    }, []);
+
+    useEffect(() => {
+        if (selectedCity) {
+            const results = mockResults.filter(result => result.city === selectedCity);
+            setFilteredResults(results);
+        } else {
+            setFilteredResults(mockResults);
+        }
+    }, [selectedCity]);
+
+    return(
+        <ScrollView style={styles.scrollContainer}>
+            <View style={styles.container}>
+            <TouchableOpacity onPress = { () => navigation.navigate('AboutUsScreen')}>
+                <Image source = {require('../../assets/adaptive-icon-cropped.png')} style = {{
+                    width: 60,
+                    height: 60,
+                    marginTop: 60,
+                }}/>
+            </TouchableOpacity>
+            <Text style = { styles.header }>Volunteer Opportunities</Text>
+            <SearchSearchBar/>
+            <View style={styles.pickerContainer}>
+                <RNPickerSelect
+                onValueChange={(value) => setSelectedCity(value)}
+                items={cities}
+                placeholder={{ label: "City/Location", value: null }}/>
+            </View>
+            <ResultsList 
+                results={filteredResults}
+                navigation={navigation}
+            />
+            
+            <StatusBar style = "auto" />
+            </View>
+        </ScrollView>
+    );
+}
+
+
+
+const styles = StyleSheet.create ({
+    pickerContainer: {
+        width: '90%',
+        alignSelf: 'center',
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 10,
+        marginTop: 5,
+        backgroundColor: '#FFF', 
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1, // Increase shadow opacity for a darker shadow
+        shadowRadius: 5, // Increase shadow radius for a fuller shadow
+        elevation: 5,
+    },
+    scrollView: {
+        flex: 1, // Ensure ScrollView fills the screen
+        backgroundColor: colors.background,
+    },
+    container: {
+        paddingTop: 60,
+        paddingHorizontal: 15,
+        marginTop: -60,
+    },
+    icon: {
+        width: 60,
+        height: 60,
+        marginBottom: 15,
+    },
+    header: {
+        color: colors.primary,
+        fontFamily: 'PingFangSC-Semibold', 
+        fontSize: 28, 
+        marginVertical: 15,
+        marginLeft: 15,
+        textAlign: 'left', 
+        fontWeight: 'bold',
+    }, 
+})
+>>>>>>> Stashed changes
 
