@@ -5,18 +5,19 @@ import colors from '../../assets/colors/colors';
 import { EvilIcons } from '@expo/vector-icons';
 
 
-const SearchSearchBar = ({term, onTermChange, onTermSubmit}) => {
+const SearchSearchBar = ({ term, onTermChange, onTermSubmit }) => {
     return (
-        <View style = {styles.backgroundStyle}>
-            <EvilIcons name = "search" style = {styles.iconStyle} />
+        <View style={styles.backgroundStyle}>
+            <EvilIcons name="search" style={styles.iconStyle} />
             <TextInput
-               autoCapitalize = "none"
-               autoCorrect = {false}
-               style = {styles.inputStyle}
-               placeholder = "Discover new opportunities" placeholderTextColor = 'gray'
-               value = {term}
-               onChangeText = {onTermChange}
-               onEndEditing = {onTermSubmit}
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={styles.inputStyle}
+                placeholder="Discover new opportunities"
+                placeholderTextColor='gray'
+                value={term}
+                onChangeText={onTermChange}
+                onEndEditing={() => onTermSubmit(term)} // Trigger search on submission
             />
         </View>
     );
