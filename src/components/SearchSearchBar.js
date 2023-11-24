@@ -7,6 +7,7 @@ import { EvilIcons } from '@expo/vector-icons';
 
 const SearchSearchBar = ({term, onTermChange, onTermSubmit}) => {
     return (
+        console.log("start searching on search screen"),
         <View style = {styles.backgroundStyle}>
             <EvilIcons name = "search" style = {styles.iconStyle} />
             <TextInput
