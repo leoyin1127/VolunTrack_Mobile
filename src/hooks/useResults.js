@@ -12,7 +12,7 @@ export default () => {
             params: {
                 location: 'toronto',
                 term: searchTerm,
-                categories: 'nonprofit',
+                categories: 'Volunteer',
                 sort_by: 'best_match',
                 limit: 20
             }
