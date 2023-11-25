@@ -4,7 +4,6 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import colors from '../../assets/colors/colors';
 import { EvilIcons } from '@expo/vector-icons';
 
-
 const SearchSearchBar = ({ term, onTermChange, onTermSubmit }) => {
     return (
         <View style={styles.backgroundStyle}>
@@ -17,7 +16,7 @@ const SearchSearchBar = ({ term, onTermChange, onTermSubmit }) => {
                 placeholderTextColor='gray'
                 value={term}
                 onChangeText={onTermChange}
-                onEndEditing={() => onTermSubmit(term)} // Trigger search on submission
+                onSubmitEditing={() => onTermSubmit(term)} // Trigger search when enter is pressed
             />
         </View>
     );
