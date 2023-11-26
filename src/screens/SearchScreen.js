@@ -89,7 +89,6 @@ const styles = StyleSheet.create ({
     container: {
         paddingTop: 60,
         paddingHorizontal: 15,
-        marginTop: -60,
     },
     icon: {
         width: 60,
