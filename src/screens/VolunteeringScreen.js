@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState }from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, ScrollView  } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, Modal, Linking, Button } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -15,63 +15,112 @@ const DetailItem = ({ icon, text }) => (
 );
 
 const VolunteeringScreen = ({ route }) => { // Destructure `route` from props
-    const itemData = route.params?.itemData; // Use optional chaining for safety
+    const itemData = route.params?.itemData;
+    const [modalVisible, setModalVisible] = useState(false);
 
-    const latitude = parseFloat(itemData.latitude);
-    const longitude = parseFloat(itemData.longitude);
+    console.log('Item Data:', itemData);
 
     if (!itemData) {
-        return (
-            <View style={styles.container}>
-                <Text>No data available</Text>
-            </View>
-        );
+        return <View style={styles.container}><Text>No data available</Text></View>;
     }
+
+    const locationExists = itemData.location && typeof itemData.location === 'object';
+    const address = locationExists ? itemData.location.address1 || '' : '';
+    const city = locationExists ? itemData.location.city || '' : '';
+    const state = locationExists ? itemData.location.state || '' : '';
+    const zipCode = locationExists ? itemData.location.zip_code || '' : '';
+    const country = locationExists ? itemData.location.country || '' : '';
+
+    const categories = itemData.categories && Array.isArray(itemData.categories)
+        ? itemData.categories.map(cat => cat.title).join(', ')
+        : 'No categories';
+
+    const fullAddress = locationExists 
+        ? `${address}, ${city}, ${state} ${zipCode}, ${country}` 
+        : 'No address provided';
+
+    const { latitude, longitude } = itemData.coordinates;
+    const formattedLatitude = parseFloat(latitude);
+    const formattedLongitude = parseFloat(longitude);
+
+    const dateText = itemData.date ? itemData.date : 'Date Not Provided';
+
+    const handleOpenLink = () => {
+        if (itemData && itemData.url) {
+            Linking.openURL(itemData.url);
+        }
+    };
+    const handleApplyNow = () => {
+        setModalVisible(true);
+    };
+
+    let contactInfo = 'Contact Info Not Available';
+    if (itemData.email) {
+        contactInfo = itemData.email;
+    } else if (itemData.phone) {
+        contactInfo = itemData.phone;
+    }
+
+    // Validate coordinates
+    if (isNaN(formattedLatitude) || isNaN(formattedLongitude)) {
+        return <View style={styles.container}><Text>Invalid location data</Text></View>;
+    }
+
 
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.name}>{itemData.name}</Text>
             <TouchableOpacity
                 style={styles.button}
-                onPress={() => {
-                    // Handle button press, e.g., navigation or action
-                    console.log('Button pressed');
-                }}>
+                onPress={handleApplyNow}>
                 <Text style={styles.buttonText}>Apply Now!</Text>
             </TouchableOpacity>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Apply at:</Text>
+                        <Text style={styles.urlText}>{itemData.url}</Text>
+                        <Button title="Open Link" onPress={() => Linking.openURL(itemData.url)} />
+                        <Button title="Close" onPress={() => setModalVisible(false)} />
+                    </View>
+                </View>
+            </Modal>
             
             <View style={styles.row}>
 
                 <View style={styles.detailsContainer}>
-                    <DetailItem icon={require('../../assets/location.png')} text={itemData.location} />
-                    <DetailItem icon={require('../../assets/category.png')} text={itemData.category} />
+                    <DetailItem icon={require('../../assets/location.png')} text={fullAddress} />
+                    <DetailItem icon={require('../../assets/category.png')} text={categories} />
                     <DetailItem icon={require('../../assets/name.png')} text={itemData.name} />
-                    <DetailItem icon={require('../../assets/date.png')} text={itemData.date} />
-                    <DetailItem icon={require('../../assets/email.png')} text={itemData.email} />
+                    <DetailItem icon={require('../../assets/date.png')} text={dateText} />
+                    <DetailItem icon={require('../../assets/email.png')} text={contactInfo} />
                     <Text style={styles.hours}>
-                    {itemData.hours ? `${itemData.hours} Volunteering Hours Offered` : 'Volunteering Hours Not Available'}
+                        {itemData.hours ? `${itemData.hours} Volunteering Hours Offered` : 'Volunteering Hours See The Web'}
                     </Text>
                 </View>
 
                 <MapView
                     style={styles.map}
                     region={{
-                        latitude: latitude,
-                        longitude: longitude,
+                        latitude: formattedLatitude,
+                        longitude: formattedLongitude,
                         latitudeDelta: 0.1122,
                         longitudeDelta: 0.0921,
                     }}>
-                    <Marker
-                        coordinate={{ latitude, longitude }}
-                        title={itemData.name}
-                        description={itemData.location}
-                    />
+                    <Marker coordinate={{ latitude: formattedLatitude, longitude: formattedLongitude }} title={itemData.name} description={fullAddress} />
+
                 </MapView>
             </View>
             
             <View style={styles.descriptionContainer}>
                 <Text style={styles.descriptionTitle}> 
-                {itemData.descriptionTitle ? itemData.descriptionTitle : null}
+                    {itemData.descriptionTitle ? itemData.descriptionTitle : null}
                 </Text>
                 <Text style={styles.description}> 
                     {itemData.description ? itemData.description : 'No description provided'}
@@ -122,7 +171,7 @@ const styles = StyleSheet.create ({
         color: colors.textDark, 
     },
     hours: {
-        fontSize: 13, // Already defined, adjust this as well if needed
+        fontSize: 12, // Already defined, adjust this as well if needed
         marginBottom: 10,
         fontWeight: 'bold',
     },
@@ -152,7 +201,7 @@ const styles = StyleSheet.create ({
     },
     map: {
         width: 170,
-        height: 170,
+        height: '90%',
     },
     descriptionTitle: {
         fontSize: 18, // Set the font size as per your design
@@ -172,6 +221,35 @@ const styles = StyleSheet.create ({
         borderWidth: 1, 
         borderColor: colors.primary, 
         borderRadius: 8,
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: "white",
+        borderRadius: 20,
+        padding: 35,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: "center"
+    },
+    urlText: {
+        color: 'blue',
+        marginBottom: 15,
     }
 })
 

@@ -14,6 +14,10 @@ const ResultsList = ({ title, results, navigation }) => {
         data={results}
         keyExtractor={(result) => result.id.toString()}
         renderItem={({ item }) => {
+          const city = item.location ? item.location.city : 'Unknown City';
+          const hoursDisplay = item.hours ? `${item.hours} hours` : 'Unlimited';
+
+
           return (
             <TouchableOpacity 
               style={styles.resultItem}
@@ -26,13 +30,13 @@ const ResultsList = ({ title, results, navigation }) => {
               {/* Semi-transparent background covering the entire image */}
               <View style={styles.textContainer}>
                 {/* Positioned at the top left */}
-                <Text style={styles.hours}>{item.hours} hours</Text>
+                <Text style={styles.hours}>{hoursDisplay} hours</Text>
 
                 {/* Centered text */}
                 <Text style={styles.name}>{item.name}</Text>
 
                 {/* Positioned at the bottom left */}
-                <Text style={styles.city}>{item.city}</Text>
+                <Text style={styles.city}>{city}</Text>
               </View>
             </ImageBackground>
           </TouchableOpacity>

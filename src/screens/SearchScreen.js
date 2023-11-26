@@ -126,7 +126,16 @@ const SearchScreen = ({navigation}) => {
 
     useEffect(() => {
         if (selectedCity) {
+<<<<<<< Updated upstream
             const results = mockResults.filter(result => result.city === selectedCity);
+=======
+            const cityResults = results.filter(result => {
+                const city = result.location ? result.location.city : '';
+                return city === selectedCity;
+            });
+            setFilteredResults(cityResults);
+        } else {
+>>>>>>> Stashed changes
             setFilteredResults(results);
         } else {
             setFilteredResults(mockResults);
@@ -176,9 +185,9 @@ const styles = StyleSheet.create ({
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 5,
         },
-        shadowOpacity: 0.1, // Increase shadow opacity for a darker shadow
+        shadowOpacity: 0.5, // Increase shadow opacity for a darker shadow
         shadowRadius: 5, // Increase shadow radius for a fuller shadow
         elevation: 5,
     },
@@ -187,9 +196,9 @@ const styles = StyleSheet.create ({
         backgroundColor: colors.background,
     },
     container: {
-        paddingTop: 60,
+        paddingTop: 50, 
         paddingHorizontal: 15,
-        marginTop: -60,
+        marginTop: 10,
     },
     icon: {
         width: 60,
