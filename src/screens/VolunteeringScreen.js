@@ -18,8 +18,6 @@ const VolunteeringScreen = ({ route }) => { // Destructure `route` from props
     const itemData = route.params?.itemData;
     const [modalVisible, setModalVisible] = useState(false);
 
-    console.log('Item Data:', itemData);
-
     if (!itemData) {
         return <View style={styles.container}><Text>No data available</Text></View>;
     }
