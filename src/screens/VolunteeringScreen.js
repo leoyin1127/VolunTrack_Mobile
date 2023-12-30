@@ -1,15 +1,11 @@
+import React, { useState }from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image, ScrollView, Modal, Linking, Button } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import React, { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 import colors from '../../assets/colors/colors';
-
-
 
 const DetailItem = ({ icon, text }) => (
     <View style={styles.detailItem}>
@@ -18,64 +14,10 @@ const DetailItem = ({ icon, text }) => (
     </View>
 );
 
-const VolunteeringScreen = ({ route, navigation }) => {
- // 状态定义
-    const itemData = route.params?.itemData; // 从路由参数获取志愿活动数据
-    const [modalVisible, setModalVisible] = useState(false); // 控制模态框的状态
-    const [isBookmarked, setIsBookmarked] = useState(false); // 控制书签状态
-    const bookmarkKey = `@bookmark_${itemData?.id}`; // 基于活动ID生成一个唯一的键
+const VolunteeringScreen = ({ route }) => { // Destructure `route` from props
+    const itemData = route.params?.itemData;
+    const [modalVisible, setModalVisible] = useState(false);
 
-    const handleBookmark = async () => {
-        const newBookmarkStatus = !isBookmarked;
-        setIsBookmarked(newBookmarkStatus);
-        try {
-            const bookmarkArray = JSON.parse(await AsyncStorage.getItem('@bookmarks')) || [];
-            if (newBookmarkStatus) {
-                // 添加书签
-                const updatedBookmarkArray = [...bookmarkArray, itemData];
-                await AsyncStorage.setItem('@bookmarks', JSON.stringify(updatedBookmarkArray));
-            } else {
-                // 移除书签
-                const updatedBookmarkArray = bookmarkArray.filter(bookmark => bookmark.id !== itemData.id);
-                await AsyncStorage.setItem('@bookmarks', JSON.stringify(updatedBookmarkArray));
-            }
-        } catch (e) {
-            console.error('更新书签失败', e);
-        }
-    };
-    
-
-    useEffect(() => {
-        const initializeBookmarkStatus = async () => {
-            try {
-                // 检查是否有书签数组
-                const bookmarks = JSON.parse(await AsyncStorage.getItem('@bookmarks')) || [];
-                // 根据当前活动的ID设置书签状态
-                setIsBookmarked(bookmarks.some(bookmark => bookmark.id === itemData?.id));
-            } catch (e) {
-                console.error('初始化书签状态失败', e);
-            }
-        };
-    
-        initializeBookmarkStatus();
-    }, []);
-
-    // 设置导航栏右侧的书签图标
-    useEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <TouchableOpacity onPress={handleBookmark}>
-                    <Ionicons 
-                        name={isBookmarked ? 'bookmark' : 'bookmark-outline'} 
-                        size={25} 
-                        color="black" 
-                    />
-                </TouchableOpacity>
-            ),
-        });
-    }, [isBookmarked, navigation]);
-
-    // 如果没有活动数据，显示错误信息
     if (!itemData) {
         return <View style={styles.container}><Text>No data available</Text></View>;
     }
@@ -122,25 +64,7 @@ const VolunteeringScreen = ({ route, navigation }) => {
         return <View style={styles.container}><Text>Invalid location data</Text></View>;
     }
 
-    useEffect(() => {
-        const checkBookmarkStatus = async () => {
-            try {
-                const savedBookmarkStatus = await AsyncStorage.getItem('@bookmark_key');
-                if (savedBookmarkStatus !== null) {
-                    setIsBookmarked(JSON.parse(savedBookmarkStatus));
-                }
-            } catch (e) {
-                console.error('读取书签状态失败', e);
-            }
-        };
-    
-        checkBookmarkStatus();
-    }, []);
-    
-    // 如果没有活动数据，显示错误信息
-    if (!itemData) {
-        return <View style={styles.container}><Text>No data available</Text></View>;
-    }
+
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.name}>{itemData.name}</Text>
@@ -206,26 +130,6 @@ const VolunteeringScreen = ({ route, navigation }) => {
         </ScrollView>
     );
 }
-
-const storeData = async (value) => {
-    try {
-        const jsonValue = JSON.stringify(value)
-        await AsyncStorage.setItem('@bookmark_key', jsonValue)
-    } catch (e) {
-        // saving error
-    }
-}
-
-const getData = async () => {
-    try {
-        const jsonValue = await AsyncStorage.getItem('@bookmark_key')
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch(e) {
-        // error reading value
-    }
-}
-
-
 
 const styles = StyleSheet.create ({
     container: {
