@@ -42,9 +42,14 @@ const SearchScreen = ({ navigation }) => {
     return(
         <ScrollView style={styles.scrollView}>
             <View style={styles.container}>
-                <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
-                    <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
-                </TouchableOpacity>
+            <TouchableOpacity onPress = { () => navigation.navigate('AboutUsScreen')}>
+                <Image source = {require('../../assets/adaptive-icon-cropped.png')} style = {{
+                    width: 60,
+                    height: 60,
+                    marginTop: 60,
+                    marginLeft: 15,
+                }}/>
+            </TouchableOpacity>
                 <Text style={styles.header}>Volunteer Opportunities</Text>
                 <SearchSearchBar term={term} onTermChange={setTerm} onTermSubmit={handleSearchSubmit} />
                 <View style={styles.pickerContainer}>
