@@ -11,13 +11,14 @@ export default () => {
         const response = await yelp.get('/search', {
             params: {
                 location: 'canada',
-                term: searchTerm + 'volunteer',
+                term: searchTerm+' volunteer',
                 categories: 'Volunteer',
                 sort_by: 'best_match',
                 limit: 20
             }
         });
         setResults(response.data.businesses);
+        console.log(response.data.businesses);
     } catch (error) {
         console.error('Error during search:', error);
         setErrorMessage('Something went wrong...');
