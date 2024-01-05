@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// Create a functional component for the chat screen.
 const IndividualMailScreen = () => {
   const [messages, setMessages] = useState([]); // State to store chat messages
-  const [newMessage, setNewMessage] = useState(''); // State to store the user's new message
-
-  // Function to handle sending a new message
+  const [newMessage, setNewMessage] = useState('');
   const sendMessage = () => {
     if (newMessage) {
       setMessages([...messages, { text: newMessage, sender: 'user' }]);
@@ -44,19 +41,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    marginTop: 60,
+    marginTop: 80,
     marginBottom: 20
   },
   userMessage: {
     backgroundColor: 'lightblue',
-    padding: 8,
+    padding: 12,
     borderRadius: 8,
     alignSelf: 'flex-end',
     marginBottom: 8,
   },
   botMessage: {
     backgroundColor: 'lightgray',
-    padding: 8,
+    padding: 12,
     borderRadius: 8,
     alignSelf: 'flex-start',
     marginBottom: 8,
@@ -70,11 +67,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'lightgray',
     borderRadius: 16,
-    padding: 8,
+    padding: 18,
   },
   sendButton: {
-    color: 'blue',
+    color: 'white',
     marginLeft: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 255, 0.6)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontWeight: 'bold',
   },
 });
 

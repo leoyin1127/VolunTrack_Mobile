@@ -1,6 +1,14 @@
-import Constants from 'expo-constants'; // Import Constants from 'expo-constants'
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
+import { Alert } from 'react-native';
+
+const handleNotification = (notification) => {
+  Alert.alert(
+    'Received Notification',
+    `Title: ${notification.request.content.title}\nBody: ${notification.request.content.body}`
+  );
+};
 
 const usePushNotification = () => {
   useEffect(() => {
@@ -19,22 +27,25 @@ const usePushNotification = () => {
         const projectId = Constants.expoConfig.extra.projectId;
 
         const expoPushToken = await Notifications.getExpoPushTokenAsync({
-          projectId: '00ab2240-c3a4-4974-87cf-2d41f65b9b0e'
+          projectId: '00ab2240-c3a4-4974-87cf-2d41f65b9b0e',
         });
         const token = expoPushToken.data;
         console.log('Expo Push Token:', token);
 
-        await Notifications.scheduleNotificationAsync({
+        Notifications.scheduleNotificationAsync({
           content: {
-            title: 'Test Notification',
-            body: 'This is a test notification.',
+            title: 'test 1',
+            body: "hello friends",
           },
           trigger: null,
         });
+
+        Notifications.addNotificationReceivedListener(handleNotification);
       } catch (error) {
         console.error('Error getting or scheduling push notification:', error);
       }
     };
+
 
     registerForPushNotifications();
   }, []);

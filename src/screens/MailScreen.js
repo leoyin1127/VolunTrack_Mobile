@@ -1,100 +1,176 @@
-import { Notifications } from 'expo';
+import { MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import colors from '../../assets/colors/colors';
 import MailSearchBar from '../components/MailSearchBar';
 import { usePushNotification } from '../services/pushnotification';
 
 const MailScreen = ({ navigation }) => {
-usePushNotification();
+  usePushNotification();
 
-useEffect(() => {
+  useEffect(() => {
     const registerForPushNotifications = async () => {
-      // Check if the app has permission to receive push notifications
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
 
-      // If permission has not been granted, ask for it
-    if (existingStatus !== 'granted') {
+      if (existingStatus !== 'granted') {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        return;
+      }
+
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      const token = tokenData.data;
+
+      console.log('Expo Push Token:', token);
+    };
+
+    (async () => {
+      await registerForPushNotifications();
+    })();
+  }, []);
+
+  const [starredMessages, setStarredMessages] = useState([]);
+  const messages = [
+    { id: 1, text: 'Message 1' },
+    { id: 2, text: 'Message 2' },
+    { id: 3, text: 'Message 3' },
+  ];
+
+  const navigateToIndividualMail = (message) => {
+    navigation.navigate('IndividualMailScreen', { message });
+  };
+
+  const toggleStar = (messageId) => {
+    const isStarred = starredMessages.includes(messageId);
+    if (isStarred) {
+      setStarredMessages(starredMessages.filter((id) => id !== messageId));
+    } else {
+      setStarredMessages([...starredMessages, messageId]);
     }
-   // If permission is still not granted, exit
-if (finalStatus !== 'granted') {
-    return;
-}
+  };
 
-  // Get the device's push token
-const tokenData = await Notifications.getExpoPushTokenAsync();
-const token = tokenData.data;
+  const isMessageStarred = (messageId) => starredMessages.includes(messageId);
 
-console.log('Expo Push Token:', token);
-};
+  const profileImages = {
+    1: require('../../assets/profile-pic.jpeg'),
+    2: require('../../assets/profile-pic.jpeg'),
+    3: require('../../assets/profile-pic.jpeg'),
+  };
 
-// Immediately Invoked Function Expression (IIFE) to handle async code
-(async () => {
-await registerForPushNotifications();
-})();
-}, []);
-
-// Sample messages data
-const messages = [
-{ id: 1, text: 'Message 1' },
-{ id: 2, text: 'Message 2' },
-{ id: 3, text: 'Message 3' },
-];
-const navigateToIndividualMail = (message) => {
-    navigation.navigate('IndividualMail', { message });
-};
-
-return (
-    <View>
-    <TouchableOpacity onPress={() => navigation.navigate('AboutUs')}>
-        <Image
-        source={require('../../assets/adaptive-icon-cropped.png')}
-        style={{
-            width: 60,
-            height: 60,
-            marginTop: 60,
-            marginLeft: 15,
-        }}
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity onPress={() => navigation.navigate('AboutUs')}>
+        <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
+      </TouchableOpacity>
+      <Text style={styles.header}>Mail</Text>
+      <MailSearchBar />
+      {messages.length > 0 && (
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => navigateToIndividualMail(item)}>
+              <View style={styles.messageItem}>
+                <Image source={profileImages[item.id]} style={styles.profileImage} />
+                <View style={styles.messageContent}>
+                  <Text style={styles.messageText}>{item.text}</Text>
+                </View>
+                <TouchableOpacity onPress={() => toggleStar(item.id)} style={styles.starIcon}>
+                  {isMessageStarred(item.id) ? (
+                    <MaterialIcons name="star" size={24} color="gold" />
+                  ) : (
+                    <MaterialIcons name="star-outline" size={24} color="gray" />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          )}
         />
-    </TouchableOpacity>
-    <Text style={styles.header}>Mail</Text>
-    <MailSearchBar />
-    <FlatList
-        data={messages}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => navigateToIndividualMail(item)}>
-            <View style={styles.messageItem}>
-        <Text>{item.text}</Text>
-            </View>
-        </TouchableOpacity>
-        )}
-    />
-    <StatusBar style="auto" />
+      )}
+      {messages.length > 0 && (
+        <View style={styles.topRightIcons} elevation={5}>
+          <TouchableOpacity onPress={() => console.log('Trash icon pressed')}>
+            <Image source={require('../../assets/trash.png')} style={styles.topRightIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => console.log('Menu icon pressed')}>
+            <Image source={require('../../assets/menuu.png')} style={styles.topRightIcon} />
+          </TouchableOpacity>
+        </View>
+      )}
+      <StatusBar style="auto" />
     </View>
-    ) ;
-};
-
-const styles = StyleSheet.create({
-header: {
-    color: colors.primary,
-    fontFamily: 'PingFangSC-Semibold',
-    fontSize: 36,
-    marginVertical: 15,
-    marginLeft: 35,
-    textAlign: 'left',
-},
-messageItem: {
-    marginBottom: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'lightgray',
-    borderRadius: 10,
-},
-});
-
-export default MailScreen;
+    );
+  };
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#FFFFFF',
+      paddingTop: 20,
+      paddingHorizontal: 15,
+    },
+    icon: {
+      width: 60,
+      height: 60,
+      marginTop: 25
+    },
+    header: {
+      color: colors.primary,
+      fontFamily: 'PingFangSC-Semibold',
+      fontSize: 28,
+      marginVertical: 15,
+      marginLeft: 15,
+      textAlign: 'left',
+      fontWeight: 'bold',
+    },
+    messageItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 20,
+      padding: 18,
+      marginHorizontal: 15,
+    },
+    profileImage: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    messageContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    messageText: {
+      color: 'rgb(58,59,60)',
+      fontSize: 14,
+    },
+    starIcon: {
+      marginLeft: 'auto',
+    },
+    topRightIcons: {
+      position: 'absolute',
+      top: 20,
+      marginTop:40,
+      marginLeft:20,
+      right: 20,
+      flexDirection: 'row',
+      alignSelf: 'flex-end',
+    },
+    topRightIcon: {
+      width: 30,
+      height: 30,
+      marginLeft: 10,
+    },
+    trashIcon: {
+      marginLeft: 10,
+    },
+    aboutUsIcon: {
+      marginLeft: 10
+    }
+  });
+  export default MailScreen;
