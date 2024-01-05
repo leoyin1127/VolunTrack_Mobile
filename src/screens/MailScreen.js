@@ -42,7 +42,7 @@ const MailScreen = ({ navigation }) => {
   ];
 
   const navigateToIndividualMail = (message) => {
-    navigation.navigate('IndividualMailScreen', { message });
+    navigation.navigate('IndividualMail', { message });
   };
 
   const toggleStar = (messageId) => {
