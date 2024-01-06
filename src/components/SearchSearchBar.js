@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         color: colors.primary,
         marginHorizontal: 10, 
-    }
+    },
 });
 
 export default SearchSearchBar;
