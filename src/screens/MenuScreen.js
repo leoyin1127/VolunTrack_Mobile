@@ -1,3 +1,4 @@
+
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
@@ -18,6 +19,7 @@ const MenuScreen = ({ route }) => {
       setShouldSearch(true);
       setTerm(searchTerm);
     });
+
 
     return unsubscribe;
   }, [navigation, searchTerm]);
@@ -56,6 +58,8 @@ const MenuScreen = ({ route }) => {
   );
 };
 
-const styles = StyleSheet.create({});
 
-export default MenuScreen;
+// const styles = StyleSheet.create({});
+
+
+// export default withNavigation(MenuScreen);
