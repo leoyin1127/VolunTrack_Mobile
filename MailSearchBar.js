@@ -8,13 +8,13 @@ const MailSearchBar = ({term, onTermChange, onTermSubmit}) => {
         <View style = {styles.backgroundStyle}>
             <EvilIcons name = "search" style = {styles.iconStyle} />
             <TextInput
-            autoCapitalize = "none"
-            autoCorrect = {false}
-            style = {styles.inputStyle}
-            placeholder = "Search mail" placeholderTextColor = 'gray'
-            value = {term}
-            onChangeText = {onTermChange}
-            onEndEditing = {onTermSubmit}
+               autoCapitalize = "none"
+               autoCorrect = {false}
+               style = {styles.inputStyle}
+               placeholder = "Search mail" placeholderTextColor = 'gray'
+               value = {term}
+               onChangeText = {onTermChange}
+               onEndEditing = {onTermSubmit}
             />
         </View>
     );
@@ -22,7 +22,7 @@ const MailSearchBar = ({term, onTermChange, onTermSubmit}) => {
 
 const styles = StyleSheet.create({
     backgroundStyle: {
-        backgroundColor: '#FFF',
+        backgroundColor: '#FFF', 
         height: 40,
         borderRadius: 40,
         width: '90%',
