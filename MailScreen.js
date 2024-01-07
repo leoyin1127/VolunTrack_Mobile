@@ -69,28 +69,37 @@ const MailScreen = ({ navigation }) => {
       </TouchableOpacity>
       <Text style={styles.header}>Mail</Text>
       <MailSearchBar />
-      {messages.length > 0 && (
-        <FlatList
+      {messages.length > 0 ? (
+      <FlatList
           data={messages}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigateToIndividualMail(item)}>
-              <View style={styles.messageItem}>
-                <Image source={profileImages[item.id]} style={styles.profileImage} />
-                <View style={styles.messageContent}>
-                  <Text style={styles.messageText}>{item.text}</Text>
+          renderItem={({ item, index }) => (
+            <>
+              <TouchableOpacity onPress={() => navigateToIndividualMail(item)}>
+                <View style={styles.messageItem}>
+                  <Image source={profileImages[item.id]} style={styles.profileImage} />
+                  <View style={styles.messageContent}>
+                    <Text style={styles.messageText}>{item.text}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => toggleStar(item.id)} style={styles.starIcon}>
+                    {isMessageStarred(item.id) ? (
+                      <MaterialIcons name="star" size={18} color="gold" />
+                    ) : (
+                      <MaterialIcons name="star-outline" size={18} color="gray" />
+                    )}
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={() => toggleStar(item.id)} style={styles.starIcon}>
-                  {isMessageStarred(item.id) ? (
-                    <MaterialIcons name="star" size={24} color="gold" />
-                  ) : (
-                    <MaterialIcons name="star-outline" size={24} color="gray" />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+              {index < messages.length - 1 && (
+                <View style={styles.divider} />
+              )}
+            </>
           )}
         />
+      ) : (
+        <View style={styles.noMessageContainer}>
+          <Text style={styles.noMessageText}>No messages available</Text>
+        </View>
       )}
       {messages.length > 0 && (
         <View style={styles.topRightIcons} elevation={5}>
@@ -131,12 +140,12 @@ const MailScreen = ({ navigation }) => {
       flexDirection: 'row',
       alignItems: 'center',
       marginTop: 20,
-      padding: 18,
+      padding: 12,
       marginHorizontal: 15,
     },
     profileImage: {
-      width: 40,
-      height: 40,
+      width: 30,
+      height: 30,
       borderRadius: 20,
       marginRight: 10,
     },
@@ -162,8 +171,8 @@ const MailScreen = ({ navigation }) => {
       alignSelf: 'flex-end',
     },
     topRightIcon: {
-      width: 30,
-      height: 30,
+      width: 25,
+      height: 25,
       marginLeft: 10,
     },
     trashIcon: {
@@ -171,6 +180,20 @@ const MailScreen = ({ navigation }) => {
     },
     aboutUsIcon: {
       marginLeft: 10
+    },
+    divider: {
+      height:  0.8,
+      backgroundColor: 'lightgray',
+      marginHorizontal: 0,
+    },
+    noMessageContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    noMessageText: {
+      fontSize: 18,
+      color: 'gray',
     }
   });
   export default MailScreen;

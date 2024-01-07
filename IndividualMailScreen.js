@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+// Create a functional component for the chat screen.
 const IndividualMailScreen = () => {
   const [messages, setMessages] = useState([]); // State to store chat messages
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState(''); // State to store the user's new message
+
+  // Function to handle sending a new message
   const sendMessage = () => {
     if (newMessage) {
       setMessages([...messages, { text: newMessage, sender: 'user' }]);

@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import {
+  FlatList,
+  Image,
   StyleSheet,
   Text,
-  View,
-  TouchableOpacity,
-  Image,
-  FlatList
+  View
 } from 'react-native';
 
 export default class Notifications extends Component {
@@ -131,4 +130,4 @@ const styles = StyleSheet.create({
     fontFamily: "HelveticaNeue",
     marginTop: 5
   }
-}); 
+});
