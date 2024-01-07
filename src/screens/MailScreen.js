@@ -1,4 +1,5 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -10,28 +11,76 @@ const MailScreen = ({ navigation }) => {
   usePushNotification();
 
   const [messages, setMessages] = useState([
-    { id: 1, text: 'Message 1' },
-    { id: 2, text: 'Message 2' },
-    { id: 3, text: 'Message 3' },
   ]);
   const [showMessages, setShowMessages] = useState(true);
   const [starredMessages, setStarredMessages] = useState([]);
   const [selectedMessages, setSelectedMessages] = useState([]);
 
+  const CheckBox = ({ checked, onPress }) => {
+    // Only render the checkbox if isSelectMode is true
+    if (!isSelectMode) {
+      return null;
+    }
+  
+    return (
+      <TouchableOpacity onPress={onPress} style={styles.checkboxContainer}>
+        <View style={[styles.checkbox, checked && styles.checked]}>
+          {checked && (
+            <MaterialCommunityIcons name="checkbox-marked" size={24} color="blue" />
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  
+  
+  
+
   useEffect(() => {
-    // ... (your existing push notification code)
+    const registerForPushNotifications = async () => {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        return;
+      }
+
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      const token = tokenData.data;
+
+      console.log('Expo Push Token:', token);
+    };
+
+    (async () => {
+      await registerForPushNotifications();
+    })();
   }, []);
 
   const navigateToIndividualMail = (message) => {
     navigation.navigate('IndividualMail', { message });
   };
-
+  const [isSelectMode, setIsSelectMode] = useState(false);
   const isMessageStarred = (messageId) => starredMessages.includes(messageId);
 
   const toggleSelectMenu = () => {
-    console.log('Select menu pressed');
-    setShowMessages((prevShowMessages) => !prevShowMessages);
-    setSelectedMessages([]);
+    setIsSelectMode((prevIsSelectMode) => !prevIsSelectMode);
+  };
+
+  const selectMessage = (messageId) => {
+    if (showMessages) {
+      setSelectedMessages((prevSelectedMessages) => {
+        if (prevSelectedMessages.includes(messageId)) {
+          return prevSelectedMessages.filter((id) => id !== messageId);
+        } else {
+          return [...prevSelectedMessages, messageId];
+        }
+      });
+    }
   };
 
   const deleteSelectedMessages = () => {
@@ -55,16 +104,6 @@ const MailScreen = ({ navigation }) => {
     }
   };
 
-  const selectMessage = (messageId) => {
-    setSelectedMessages((prevSelectedMessages) => {
-      if (prevSelectedMessages.includes(messageId)) {
-        return prevSelectedMessages.filter((id) => id !== messageId);
-      } else {
-        return [...prevSelectedMessages, messageId];
-      }
-    });
-  };
-
   const profileImages = {
     1: require('../../assets/profile-pic.jpeg'),
     2: require('../../assets/profile-pic.jpeg'),
@@ -77,71 +116,71 @@ const MailScreen = ({ navigation }) => {
         <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
       </TouchableOpacity>
       <MailSearchBar />
-      {showMessages ? (
+      {messages.length > 0 ? (
         <FlatList
-          data={messages}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item, index }) => (
-            <>
-              {selectedMessages.length > 0 && (
-                <View style={styles.selectLabelContainer}>
-                  <Text style={styles.selectLabelText}>Select</Text>
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item, index }) => (
+          <>
+            <TouchableOpacity
+  onPress={() => {
+    if (isSelectMode) {
+      selectMessage(item.id);
+    } else {
+      navigateToIndividualMail(item);
+    }
+  }}
+>
+  <View
+    style={[
+      styles.messageItem,
+      selectedMessages.includes(item.id) && styles.selectedMessage,
+    ]}
+  >
+    {isSelectMode && (
+    <CheckBox
+    checked={selectedMessages.includes(item.id)}
+    onPress={() => selectMessage(item.id)}
+  />
+
+  )}
+                <TouchableOpacity onPress={() => navigateToIndividualMail(item)}>
+                  <Image source={profileImages[item.id]} style={styles.profileImage} />
+                </TouchableOpacity>
+                <View style={styles.messageContent}>
+                  <Text style={styles.messageText}>{item.text}</Text>
                 </View>
-              )}
-              <TouchableOpacity
-                onPress={() => {
-                  if (selectedMessages.length > 0) {
-                    selectMessage(item.id);
-                  } else {
-                    navigateToIndividualMail(item);
-                  }
-                }}
-              >
-                <View
-                  style={[
-                    styles.messageItem,
-                    selectedMessages.includes(item.id) && styles.selectedMessage,
-                  ]}
-                >
-                  <TouchableOpacity onPress={() => selectMessage(item.id)}>
-                    <Image source={profileImages[item.id]} style={styles.profileImage} />
-                  </TouchableOpacity>
-                  <View style={styles.messageContent}>
-                    <Text style={styles.messageText}>{item.text}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => toggleStar(item.id)} style={styles.starIcon}>
-                    {isMessageStarred(item.id) ? (
-                      <MaterialIcons name="star" size={18} color="gold" />
-                    ) : (
-                      <MaterialIcons name="star-outline" size={18} color="gray" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-              {index < messages.length - 1 && <View style={styles.divider} />}
-            </>
-          )}
-        />
-      ) : (
-        <View style={styles.noMessageContainer}>
-          <Text style={styles.noMessageText}>No messages available</Text>
-        </View>
-      )}
-      {messages.length > 0 && (
-        <View style={styles.topRightIcons} elevation={5}>
-          {selectedMessages.length > 0 && (
-            <TouchableOpacity onPress={handleDelete}>
-              <Image source={require('../../assets/trash.png')} style={styles.topRightIcon} />
+                <TouchableOpacity onPress={() => toggleStar(item.id)} style={styles.starIcon}>
+                  {isMessageStarred(item.id) ? (
+                    <MaterialIcons name="star" size={18} color="gold" />
+                  ) : (
+                    <MaterialIcons name="star-outline" size={18} color="gray" />
+                  )}
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={toggleSelectMenu}>
-            <Image source={require('../../assets/menuu.png')} style={styles.topRightIcon} />
-          </TouchableOpacity>
-        </View>
-      )}
-      <StatusBar style="auto" />
-    </View>
-  );
+            {index < messages.length - 1 && <View style={styles.divider} />}
+          </>
+        )}
+      />
+    ) : (
+      <View style={styles.noMessageContainer}>
+        <Text style={styles.noMessageText}>No messages available</Text>
+      </View>
+    )}
+    {messages.length > 0 && (
+      <View style={styles.topRightIcons} elevation={5}>
+        <TouchableOpacity onPress={handleDelete}>
+          <Image source={require('../../assets/trash.png')} style={styles.topRightIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={toggleSelectMenu}>
+          <Image source={require('../../assets/menuu.png')} style={styles.topRightIcon} />
+        </TouchableOpacity>
+      </View>
+    )}
+    <StatusBar style="auto" />
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
@@ -187,6 +226,23 @@ const styles = StyleSheet.create({
     color: 'rgb(58,59,60)',
     fontSize: 14,
   },
+  checkboxContainer: {
+    padding: 8,
+  },
+  checkbox: {
+    width: 15,
+    height: 15,
+    borderWidth: 1,
+    borderColor: 'grey',
+    borderRadius: 5,
+    backgroundColor: 'transparent', // Set to transparent
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checked: {
+    backgroundColor: colors.primary, // Set the desired checked color here
+    borderColor: colors.primary,
+  },
   starIcon: {
     marginLeft: 'auto',
   },
@@ -226,19 +282,6 @@ const styles = StyleSheet.create({
   },
   selectedMessage: {
     backgroundColor: colors.primaryLight,
-  },
-  selectLabelContainer: {
-    backgroundColor: colors.primary, // Customize the background color as needed
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    alignSelf: 'flex-start',
-    marginHorizontal: 15,
-    borderRadius: 5,
-  },
-  selectLabelText: {
-    color: '#FFFFFF', // Customize the text color as needed
-    fontSize: 14,
-    fontWeight: 'bold',
   },
 });
 export default MailScreen
