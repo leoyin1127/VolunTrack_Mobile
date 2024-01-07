@@ -123,12 +123,14 @@ const SearchScreen = ({ navigation }) => {
   return (
     <ScrollView style={staticStyles.scrollView}>
         <View style={staticStyles.container}>
-            <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
-            <Image
-                source={require('../../assets/adaptive-icon-cropped.png')}
-                style={staticStyles.icon}
-            />
-            </TouchableOpacity>
+            <View style={staticStyles.topBar}>
+                <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
+                    <Image source={require('../../assets/adaptive-icon-cropped.png')} style={staticStyles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('SettingScreen')}>
+                    <Image source={require('../../assets/icons/SettingIcon.png')} style={staticStyles.icon} />
+                </TouchableOpacity>
+            </View>
             
             <Text style={staticStyles.header}>Volunteer Opportunities</Text>
             
@@ -203,6 +205,11 @@ const staticStyles = StyleSheet.create({
     container: {
         paddingTop: 60,
         paddingHorizontal: 15,
+    },
+    topBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     icon: {
         width: 60,

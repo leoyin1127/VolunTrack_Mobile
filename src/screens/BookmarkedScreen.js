@@ -34,20 +34,21 @@ const BookmarkedItem = ({ item, onPress, navigation }) => {
         >
         {/* 将 TouchableOpacity 替换为 View，并添加触摸事件 */}
         <View style={{ position: '90%', top: 60, left: 15, zIndex: 1 }}>
-            <TouchableOpacity onPress = { () => navigation.navigate('AboutUsScreen')}>
-                    <Image source = {require('../../assets/adaptive-icon-cropped.png')} style = {{
-                        width: 60,
-                        height: 60,
-                        marginBottom: 15,
-                    }}/>
-            </TouchableOpacity>
+            <View style={styles.topBar}>
+                <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
+                    <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('SettingScreen')}>
+                    <Image source={require('../../assets/icons/SettingIcon.png')} style={styles.icon} />
+                </TouchableOpacity>
             </View>
-            <View style={styles.textContainer}>
+        </View>
+        <View style={styles.textContainer}>
             {/* 使用文本样式显示名称、时长和城市 */}
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.hours}>{hours}</Text>
             <Text style={styles.city}>{cityName}</Text>
-            </View>
+        </View>
         </ImageBackground>
         </TouchableOpacity>
     );
@@ -88,9 +89,14 @@ const BookmarkedScreen = ({ navigation }) => {
         <ScrollView style={styles.scrollView}>
             <View style={styles.container}>
                 <StatusBar style="auto" />
+                <View style={styles.topBar}>
                 <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
                     <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('SettingScreen')}>
+                    <Image source={require('../../assets/icons/SettingIcon.png')} style={styles.icon} />
+                </TouchableOpacity>
+            </View>
                 <Text style={styles.header}>Bookmarked</Text>
                 <View style={styles.searchBarStyle}>
                     <SearchSearchBar 
@@ -110,7 +116,11 @@ const BookmarkedScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    
+    topBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     resultItem: {
         // 样式应与 ResultsList 中的 resultItem 样式匹配
         height: 80, // 或根据 ResultsList 的实际高度调整
