@@ -112,9 +112,13 @@ const MailScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.navigate('AboutUs')}>
-        <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
-      </TouchableOpacity>
+       <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
+            <Image
+                source={require('../../assets/adaptive-icon-cropped.png')}
+                style={styles.icon}
+            />
+            </TouchableOpacity>
+            <Text style = { styles.header }>Mail</Text>
       <MailSearchBar />
       {messages.length > 0 ? (
         <FlatList
@@ -193,7 +197,8 @@ const styles = StyleSheet.create({
   icon: {
     width: 60,
     height: 60,
-    marginTop: 25
+    marginTop: 40,
+    marginBottom: 15,
   },
   header: {
     color: colors.primary,
