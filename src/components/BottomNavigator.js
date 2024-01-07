@@ -2,8 +2,8 @@ import React from 'react'
 import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-// import HomeScreen from '../screens/HomeScreen';
-// import MenuScreen from '../screens/MenuScreen';
+import HomeScreen from '../screens/HomeScreen';
+import MenuScreen from '../screens/MenuScreen';
 import MailScreen from '../screens/MailScreen';
 import UserScreen from '../screens/UserScreen';
 import PostScreen from '../screens/PostScreen';
@@ -47,7 +47,7 @@ const BottomNavigator = () => {
 
           }
         >
-            {/* <BottomTab.Screen name = "VolunTrack" component= {HomeScreen} options ={{
+            <BottomTab.Screen name = "VolunTrack" component= {HomeScreen} options ={{
                 tabBarIcon: ({focused}) => (
                     <View style = {{alignItems: 'center', justifyContent: 'center', top: 10}}>
                         <Image
@@ -107,7 +107,7 @@ const BottomNavigator = () => {
                         />
                     </View>
                 )
-            }}/> */}
+            }}/>
             <BottomTab.Screen name = "User" component= {UserScreen} options ={{
                 tabBarIcon: ({focused}) => (
                     <View style = {{alignItems: 'center', justifyContent: 'center', top: 10}}>

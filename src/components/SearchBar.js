@@ -1,28 +1,23 @@
-// SearchSearchBar.js
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { EvilIcons } from '@expo/vector-icons';
-import colors from '../../assets/colors/colors';
 
-const SearchSearchBar = ({ term, onTermChange, onTermSubmit }) => {
+const SearchBar = ({term, onTermChange, onTermSubmit}) => {
     return (
-        <View style={styles.backgroundStyle}>
-            <EvilIcons name="search" style={styles.iconStyle} />
+        <View style = {styles.backgroundStyle}>
             <TextInput
-                autoCapitalize="none"
-                autoCorrect={false}
-                style={styles.inputStyle}
-                placeholder="Discover new opportunities"
-                placeholderTextColor='gray'
-                value={term}
-                onChangeText={onTermChange}
-                onEndEditing={() => onTermSubmit(term)} // Trigger search on submission
+               autoCapitalize="none"
+               autoCorrect={false}
+               style = {styles.inputStyle}
+               placeholder = "Search" placeholderTextColor = 'gray'
+               value={term}
+               onChangeText={onTermChange}
+               onEndEditing={onTermSubmit}
             />
+            <EvilIcons name = "search" style = {styles.iconStyle} />
         </View>
     );
 };
-
-// ... styles remain the same
 
 const styles = StyleSheet.create({
     backgroundStyle: {
