@@ -8,7 +8,17 @@ import { usePushNotification } from '../services/pushnotification';
 
 const MailScreen = ({ navigation }) => {
   usePushNotification();
+  
+const [messages, setMessages] = useState([
+    { id: 1, text: 'Message 1' },
+    { id: 2, text: 'Message 2' },
+    { id: 3, text: 'Message 3' },
+  ]);
+  const [showMessages, setShowMessages] = useState(true);
+  const [starredMessages, setStarredMessages] = useState([]);
+  const [selectedMessages, setSelectedMessages] = useState([]);
 
+  
   useEffect(() => {
     const registerForPushNotifications = async () => {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -34,15 +44,31 @@ const MailScreen = ({ navigation }) => {
     })();
   }, []);
 
-  const [starredMessages, setStarredMessages] = useState([]);
-  const messages = [
-    { id: 1, text: 'Message 1' },
-    { id: 2, text: 'Message 2' },
-    { id: 3, text: 'Message 3' },
-  ];
 
   const navigateToIndividualMail = (message) => {
     navigation.navigate('IndividualMail', { message });
+  };
+  const isMessageStarred = (messageId) => starredMessages.includes(messageId);
+
+
+  const toggleSelectMenu = () => {
+    console.log('Select menu pressed');
+    // Toggle the showMessages state to show or hide messages
+    setShowMessages((prevShowMessages) => !prevShowMessages);
+    // Clear selected messages when exiting selection mode
+    setSelectedMessages([]);
+  };
+
+  const deleteSelectedMessages = () => {
+    const updatedMessages = messages.filter((message) => !selectedMessages.includes(message.id));
+    setMessages(updatedMessages);
+    setSelectedMessages([]);
+    setShowMessages(updatedMessages.length > 0);
+  };
+
+  const handleDelete = () => {
+    console.log('Delete button pressed');
+    deleteSelectedMessages();
   };
 
   const toggleStar = (messageId) => {
@@ -54,7 +80,19 @@ const MailScreen = ({ navigation }) => {
     }
   };
 
-  const isMessageStarred = (messageId) => starredMessages.includes(messageId);
+  const selectMessage = (messageId) => {
+    // Toggle the selection of the message
+    setSelectedMessages((prevSelectedMessages) => {
+      if (prevSelectedMessages.includes(messageId)) {
+        return prevSelectedMessages.filter((id) => id !== messageId);
+      } else {
+        return [...prevSelectedMessages, messageId];
+      }
+    });
+  };
+
+
+
 
   const profileImages = {
     1: require('../../assets/profile-pic.jpeg'),
@@ -67,54 +105,58 @@ const MailScreen = ({ navigation }) => {
       <TouchableOpacity onPress={() => navigation.navigate('AboutUs')}>
         <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
       </TouchableOpacity>
-      <Text style={styles.header}>Mail</Text>
       <MailSearchBar />
-      {messages.length > 0 ? (
-      <FlatList
-          data={messages}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item, index }) => (
-            <>
-              <TouchableOpacity onPress={() => navigateToIndividualMail(item)}>
-                <View style={styles.messageItem}>
-                  <Image source={profileImages[item.id]} style={styles.profileImage} />
-                  <View style={styles.messageContent}>
-                    <Text style={styles.messageText}>{item.text}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => toggleStar(item.id)} style={styles.starIcon}>
-                    {isMessageStarred(item.id) ? (
-                      <MaterialIcons name="star" size={18} color="gold" />
-                    ) : (
-                      <MaterialIcons name="star-outline" size={18} color="gray" />
-                    )}
-                  </TouchableOpacity>
+      {showMessages ? (
+        <FlatList
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item, index }) => (
+          <>
+            <TouchableOpacity onPress={() => selectMessage(item.id)}>
+              <View
+                style={[
+                  styles.messageItem,
+                  selectedMessages.includes(item.id) && styles.selectedMessage,
+                ]}
+              >
+                <Image source={profileImages[item.id]} style={styles.profileImage} />
+                <View style={styles.messageContent}>
+                  <Text style={styles.messageText}>{item.text}</Text>
                 </View>
-              </TouchableOpacity>
-              {index < messages.length - 1 && (
-                <View style={styles.divider} />
-              )}
-            </>
-          )}
-        />
-      ) : (
-        <View style={styles.noMessageContainer}>
-          <Text style={styles.noMessageText}>No messages available</Text>
-        </View>
-      )}
-      {messages.length > 0 && (
-        <View style={styles.topRightIcons} elevation={5}>
-          <TouchableOpacity onPress={() => console.log('Trash icon pressed')}>
-            <Image source={require('../../assets/trash.png')} style={styles.topRightIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => console.log('Menu icon pressed')}>
-            <Image source={require('../../assets/menuu.png')} style={styles.topRightIcon} />
-          </TouchableOpacity>
-        </View>
-      )}
-      <StatusBar style="auto" />
-    </View>
-    );
-  };
+                <TouchableOpacity onPress={() => toggleStar(item.id)} style={styles.starIcon}>
+                  {isMessageStarred(item.id) ? (
+                    <MaterialIcons name="star" size={18} color="gold" />
+                  ) : (
+                    <MaterialIcons name="star-outline" size={18} color="gray" />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+            {index < messages.length - 1 && <View style={styles.divider} />}
+          </>
+        )}
+      />
+    ) : (
+      <View style={styles.noMessageContainer}>
+        <Text style={styles.noMessageText}>No messages available</Text>
+      </View>
+    )}
+    {messages.length > 0 && (
+      <View style={styles.topRightIcons} elevation={5}>
+        <TouchableOpacity onPress={handleDelete}>
+          <Image source={require('../../assets/trash.png')} style={styles.topRightIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={toggleSelectMenu}>
+          <Image source={require('../../assets/menuu.png')} style={styles.topRightIcon} />
+        </TouchableOpacity>
+      </View>
+    )}
+    <StatusBar style="auto" />
+  </View>
+);
+};
+
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -194,6 +236,9 @@ const MailScreen = ({ navigation }) => {
     noMessageText: {
       fontSize: 18,
       color: 'gray',
-    }
+    },
+    selectedMessage: {
+      backgroundColor: colors.primaryLight,
+    },
   });
-  export default MailScreen;
+  export default MailScreen
