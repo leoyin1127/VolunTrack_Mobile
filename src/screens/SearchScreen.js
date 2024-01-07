@@ -8,7 +8,6 @@ import {
   View,
   ScrollView,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import Autocomplete from 'react-native-autocomplete-input';
 import colors from '../../assets/colors/colors';
 import SearchSearchBar from '../components/SearchSearchBar';
@@ -19,10 +18,15 @@ const SearchScreen = ({ navigation }) => {
     const [term, setTerm] = useState('');
     const [cities, setCities] = useState([]);
     const [autocompleteData, setAutocompleteData] = useState([]);
+    const [showCityList, setShowCityList] = useState(false); // New state for toggling city list
     const [selectedCity, setSelectedCity] = useState('');
     const [searchApi, results, errorMessage] = useSearchApi();
     const [filteredResults, setFilteredResults] = useState([]);
     const [isFocused, setIsFocused] = useState(false);
+
+    const toggleCityList = () => {
+        setShowCityList(!showCityList); // Toggle visibility of city list
+    };
 
     useEffect(() => {
         fetch('https://countriesnow.space/api/v0.1/countries')
@@ -78,9 +82,7 @@ const SearchScreen = ({ navigation }) => {
     const dynamicStyles = StyleSheet.create({
         input: {
             // Styles for the text input
-            borderWidth: 0, // No borders
-            borderBottomWidth: 1, // Only bottom border
-            borderColor: isFocused ? colors.primary : 'lightgray', // Bottom border color
+            
             padding: 10,
             height: 40,
         },
@@ -94,6 +96,27 @@ const SearchScreen = ({ navigation }) => {
             // Styles for the list container
             margin: '10',
         },
+        inputContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',    
+            justifyContent: 'space-between', // Positions items on each end
+            borderWidth: 1, // Border for the entire container
+            borderColor: colors.primary,
+            borderRadius: 10,
+            width: '90%',
+            alignSelf: 'center',
+            marginBottom: 10,
+            
+        },
+        searchInput: {
+            flex: 1,
+            padding: 10,
+        },
+        toggleIcon: {
+            width: 20,
+            height: 20,
+            marginRight: 10,
+        },
     });
 
 
@@ -106,14 +129,25 @@ const SearchScreen = ({ navigation }) => {
                 style={staticStyles.icon}
             />
             </TouchableOpacity>
+            
             <Text style={staticStyles.header}>Volunteer Opportunities</Text>
-            <SearchSearchBar
-                term={term}
-                onTermChange={setTerm}
-                onTermSubmit={handleSearchSubmit}
-            />
-
-            <Autocomplete
+            
+            <View style={dynamicStyles.inputContainer}>
+                <SearchSearchBar
+                    term={term}
+                    onTermChange={setTerm}
+                    onTermSubmit={handleSearchSubmit}
+                    style={dynamicStyles.searchInput}
+                />
+                <TouchableOpacity onPress={toggleCityList}>
+                    <Image
+                        source={require('../../assets/icons/More.png')}
+                        style={dynamicStyles.toggleIcon}                        
+                    />
+                </TouchableOpacity>
+            </View>   
+            {showCityList && (
+                <Autocomplete
                 data={autocompleteData}
                 defaultValue={selectedCity}
                 onChangeText={handleCitySearch}
@@ -137,7 +171,8 @@ const SearchScreen = ({ navigation }) => {
                     ),
                 }}
             />
-
+            )}
+            
             <ResultsList
                 results={filteredResults}
                 navigation={navigation}

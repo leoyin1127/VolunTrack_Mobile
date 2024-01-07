@@ -31,12 +31,8 @@ const styles = StyleSheet.create({
         width: '90%',
         alignSelf: 'center',
         flexDirection: 'row',
-        marginBottom: 10,
-        borderWidth: 1, // 设置边框宽度
-        borderColor: colors.primary, // 假设 colors.primary 是您想要的蓝色
-        borderRadius: 10,
-        
-        
+        marginBottom: 5,
+        marginTop: 5,
     },
 
     inputStyle: {
@@ -49,7 +45,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         color: colors.primary,
         marginHorizontal: 10, 
-    }
+    },
 });
 
 export default SearchSearchBar;
