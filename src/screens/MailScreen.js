@@ -19,7 +19,28 @@ const MailScreen = ({ navigation }) => {
   const [selectedMessages, setSelectedMessages] = useState([]);
 
   useEffect(() => {
-    // ... (your existing push notification code)
+    const registerForPushNotifications = async () => {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        return;
+      }
+
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      const token = tokenData.data;
+
+      console.log('Expo Push Token:', token);
+    };
+
+    (async () => {
+      await registerForPushNotifications();
+    })();
   }, []);
 
   const navigateToIndividualMail = (message) => {
@@ -27,12 +48,6 @@ const MailScreen = ({ navigation }) => {
   };
 
   const isMessageStarred = (messageId) => starredMessages.includes(messageId);
-
-  const toggleSelectMenu = () => {
-    console.log('Select menu pressed');
-    setShowMessages((prevShowMessages) => !prevShowMessages);
-    setSelectedMessages([]);
-  };
 
   const deleteSelectedMessages = () => {
     const updatedMessages = messages.filter((message) => !selectedMessages.includes(message.id));
@@ -134,9 +149,6 @@ const MailScreen = ({ navigation }) => {
               <Image source={require('../../assets/trash.png')} style={styles.topRightIcon} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={toggleSelectMenu}>
-            <Image source={require('../../assets/menuu.png')} style={styles.topRightIcon} />
-          </TouchableOpacity>
         </View>
       )}
       <StatusBar style="auto" />
