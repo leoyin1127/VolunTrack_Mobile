@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     StatusBar,
@@ -9,6 +10,7 @@ import {
     ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import colors from '../../assets/colors/colors';
 import SearchSearchBar from '../components/SearchSearchBar';
 import ResultsList from '../components/ResultsList';
