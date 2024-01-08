@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import OnboardingScreen from './src/screens/OnboardingScreen';
-import { Image, StyleSheet, View, Button  } from 'react-native';
+import { Image, StyleSheet, View, Button, Text  } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import your screen components
 import AboutUsScreen from './src/screens/AboutUsScreen';
@@ -75,10 +76,31 @@ const TabNavigator = () => {
 
 export default function App() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add a loading state
 
-  const handleFinishedOnboarding = () => {
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      let hasCompleted = 'false';
+      try {
+        hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding') || 'false';
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      }
+      setHasCompletedOnboarding(hasCompleted === 'true');
+      setIsLoading(false); // Set loading to false after retrieval
+    };
+
+    checkOnboarding();
+  }, []);
+
+  const handleFinishedOnboarding = async () => {
+    await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
     setHasCompletedOnboarding(true);
   };
+
+  if (isLoading) {
+    return <View style={styles.container}><Text>Loading...</Text></View>; // Or a loading spinner
+  }
 
   return (
     <NavigationContainer>
