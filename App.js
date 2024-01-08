@@ -29,7 +29,11 @@ const MailStack = createNativeStackNavigator();
 const MailStackScreen = () => {
   return (
     <MailStack.Navigator>
-      <MailStack.Screen name="Mail" component={MailScreen} />
+     <MailStack.Screen 
+        name="Mail" 
+        component={MailScreen} 
+        options={{ headerShown: false }} // Hides the header for the Mail screen
+      />
       <MailStack.Screen name="IndividualMail" component={IndividualMailScreen} />
     </MailStack.Navigator>
   );
