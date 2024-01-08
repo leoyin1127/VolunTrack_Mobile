@@ -11,7 +11,7 @@ import AboutUsScreen from './AboutUsScreen';
 
 const HomepageScreen = ({navigation}) => {
     const [totalHours, setTotalHours] = useState(100); // Default value
-    const completedHours = 40; // Example value
+    const completedHours = 0; // Example value
 
     useFocusEffect(
         React.useCallback(() => {
