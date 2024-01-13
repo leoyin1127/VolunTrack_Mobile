@@ -6,7 +6,6 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import colors from '../../assets/colors/colors';
 import HomepageSearchBar from '../components/HomepageSearchBar';
-import BottomNavigator from '../components/BottomNavigator'
 import AboutUsScreen from './AboutUsScreen';
 
 const HomepageScreen = ({navigation}) => {

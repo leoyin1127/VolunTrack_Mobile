@@ -12,7 +12,7 @@ const AboutUsScreen = () => {
             <Image source = {require('../../assets/adaptive-icon-cropped.png')} style = { styles.logo }/>
             <Text style = { styles.headerSub }>VolunTrack</Text>
             <Text style = { styles.text }>We are a non-profitable organization with a vision to allow high-school students to reach their potential when it comes to gaining experience and acquiring the skills and knowledge they need</Text>
-            <Image source = {require('../../assets/images/naassom-azevedo-Q_Sei-TqSlc-unsplash.png')} style = { styles.image }/>
+            {/* <Image source = {require('../../assets/images/naassom-azevedo-Q_Sei-TqSlc-unsplash.png')} style = { styles.image }/> */}
         </View>
     );
 }
