@@ -1,17 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
 import colors from '../../assets/colors/colors';
 import HomepageSearchBar from '../components/HomepageSearchBar';
-import BottomNavigator from '../components/BottomNavigator'
-import AboutUsScreen from './AboutUsScreen';
 
-const HomepageScreen = ({navigation}) => {
-    const [totalHours, setTotalHours] = useState(100); // Default value
-    const completedHours = 0; // Example value
+const HomepageScreen = ({route, navigation}) => {
+    
+    const [totalCompleted, setTotalCompleted] = useState(0); 
+    const [totalHours, setTotalHours] = useState(100); 
+
+    useEffect(() => {
+        const loadInitialTotalCompleted = async () => {
+            try {
+                const initialTotalCompleted = await AsyncStorage.getItem('totalCompleted');
+                if (initialTotalCompleted !== null) {
+                    setTotalCompleted(parseInt(initialTotalCompleted, 10));
+                }
+            } catch (e) {
+                console.error('Error loading totalCompleted:', e);
+            }
+        };
+
+        loadInitialTotalCompleted();
+    }, []);
+
+    // Completed Hours As Sum Of User Inputs
+    useFocusEffect(
+        React.useCallback(() => {
+            const loadCompletedHours = async () => {
+                try {
+                    const keys = await AsyncStorage.getAllKeys();
+                    const completedHoursArray = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@completed_hours_')));
+                    const totalCompletedHours = completedHoursArray.reduce((total, [, value]) => {
+                        return total + parseInt(value, 10);
+                    }, 0);
+
+                    setTotalCompleted(totalCompletedHours);
+                } catch (e) {
+                    console.error('Error loading total completed hours:', e);
+                }
+            };
+
+            loadCompletedHours();
+        }, [])
+    );
+    // Completed Hours As Sum Of User Inputs
 
     useFocusEffect(
         React.useCallback(() => {
@@ -22,16 +58,16 @@ const HomepageScreen = ({navigation}) => {
                     setTotalHours(parseInt(hours, 10));
                 }
                 } catch (e) {
-                // error reading value
                 }
             };
             getHours();
         }, [])
     );
+    
+    const progress = (totalCompleted / totalHours) * 100;
 
-    const progress = (completedHours / totalHours) * 100;
     return(
-        <View>
+        <ScrollView>
             <View style={styles.topBar}>
                 <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
                     <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
@@ -48,9 +84,15 @@ const HomepageScreen = ({navigation}) => {
                 <View style={[styles.progressBar, { width: `${progress}%` }]} />
             </View>
             
-            <Text style = { styles.hourText }> {completedHours}/{totalHours} Hours Completed</Text>
+            <Text style = { styles.hourText }> {totalCompleted}/{totalHours} Hours Completed</Text>
+            
+            <Text style = { styles.subHeader }>Ongoing Tasks</Text>
+
+            <Text style = { styles.subHeader }>Completed Tasks</Text>
+
             <StatusBar style = "auto" />
-        </View>
+            
+        </ScrollView>
     );
 }
 
@@ -87,6 +129,14 @@ const styles = StyleSheet.create ({
         textAlign: 'center', 
         fontWeight: 'bold',
     }, 
+    subHeader: {
+        color: colors.primary,
+        fontFamily: 'PingFangSC-Semibold', 
+        fontSize: 28, 
+        marginVertical: 15,
+        textAlign: 'center', 
+        fontWeight: 'bold',
+    }, 
     text: {
         color: colors.textDark, 
         fontFamily: 'PingFangSC-Regular',
@@ -100,7 +150,7 @@ const styles = StyleSheet.create ({
         fontFamily: 'PingFangSC-Regular',
         fontSize: 15, 
         marginHorizontal: 60,
-        marginBottom: 40, 
+        marginBottom: 20, 
         marginTop: -15,
         textAlign: 'center'
     },
