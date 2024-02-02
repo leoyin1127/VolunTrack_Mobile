@@ -49,7 +49,7 @@ const SearchScreen = ({ navigation }) => {
     
         if (selectedCity) {
             cityResults = cityResults.filter(
-                (result) => result.location.city === selectedCity
+                (result) => (result.location && result.location.city === selectedCity) || (result.city === selectedCity)
             );
         }
     
@@ -118,7 +118,6 @@ const SearchScreen = ({ navigation }) => {
             marginRight: 10,
         },
     });
-
 
   return (
     <ScrollView style={staticStyles.scrollView}>
