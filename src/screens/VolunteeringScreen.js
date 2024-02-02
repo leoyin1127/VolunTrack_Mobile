@@ -87,18 +87,38 @@ const VolunteeringScreen = ({ route, navigation }) => {
     const zipCode = locationExists ? itemData.location.zip_code || '' : '';
     const country = locationExists ? itemData.location.country || '' : '';
 
-    const categories = itemData.categories && Array.isArray(itemData.categories)
-        ? itemData.categories.map(cat => cat.title).join(', ')
-        : 'No categories';
+    let categoriesText = '';
 
-    const fullAddress = locationExists 
-        ? `${address}, ${city}, ${state} ${zipCode}, ${country}` 
-        : 'No address provided';
+    if (typeof itemData.categories === 'string') {
+        categoriesText = itemData.categories;
+    } else if (Array.isArray(itemData.categories)) {
+        categoriesText = itemData.categories.map(cat => cat.title).join(', ');
+    }
 
-    const { latitude, longitude } = itemData.coordinates;
-    const formattedLatitude = parseFloat(latitude);
-    const formattedLongitude = parseFloat(longitude);
+    let fullAddress = '';
 
+    if (typeof itemData.location === 'string') {
+        fullAddress = itemData.location;
+    } else if (typeof itemData.location === 'object') {
+        const address1 = itemData.location.address1 || '';
+        const city = itemData.location.city || '';
+        const state = itemData.location.state || '';
+        const zipCode = itemData.location.zip_code || '';
+        const country = itemData.location.country || '';
+
+        fullAddress = [address1, city, state, zipCode, country].filter(Boolean).join(', ');
+    }
+
+    const coordinates = itemData.coordinates;
+    const formattedLatitude = coordinates && !isNaN(coordinates.latitude) ? parseFloat(coordinates.latitude) : null;
+    const formattedLongitude = coordinates && !isNaN(coordinates.longitude) ? parseFloat(coordinates.longitude) : null;
+
+    const isValidCoordinates = () => {
+        return formattedLatitude !== null && formattedLongitude !== null &&
+               formattedLatitude >= -90 && formattedLatitude <= 90 &&
+               formattedLongitude >= -180 && formattedLongitude <= 180;
+    };
+    
     const dateText = itemData.date ? itemData.date : 'Date Not Provided';
 
     const handleOpenLink = () => {
@@ -117,11 +137,6 @@ const VolunteeringScreen = ({ route, navigation }) => {
         contactInfo = itemData.email;
     } else if (itemData.phone) {
         contactInfo = itemData.phone;
-    }
-
-    // Validate coordinates
-    if (isNaN(formattedLatitude) || isNaN(formattedLongitude)) {
-        return <View style={styles.container}><Text>Invalid location data</Text></View>;
     }
 
     useEffect(() => {
@@ -267,7 +282,9 @@ const VolunteeringScreen = ({ route, navigation }) => {
                     <View style={styles.modalView}>
                         <Text style={styles.modalText}>Apply @:</Text>
                         <Text style={styles.urlText}>{itemData.url}</Text>
-                        <Button title="Open Link" onPress={() => Linking.openURL(itemData.url)} />
+                        <View style={{ marginBottom: 8 }}>
+                            <Button title="Open Link" onPress={() => Linking.openURL(itemData.url)} />
+                        </View>
                         <Button title="Close" onPress={() => setModalVisible(false)} />
                     </View>
                 </View>
@@ -303,8 +320,14 @@ const VolunteeringScreen = ({ route, navigation }) => {
 
                 <View style={styles.detailsContainer}>
                     <DetailItem icon={require('../../assets/location.png')} text={fullAddress} />
-                    <DetailItem icon={require('../../assets/category.png')} text={categories} />
-                    <DetailItem icon={require('../../assets/name.png')} text={itemData.name} />
+                    <DetailItem 
+                        icon={require('../../assets/category.png')} 
+                        text={categoriesText} 
+                    />                    
+                    <DetailItem 
+                        icon={require('../../assets/name.png')} 
+                        text={itemData.organization ? itemData.organization : itemData.name} 
+                    />
                     <DetailItem icon={require('../../assets/date.png')} text={dateText} />
                     <DetailItem icon={require('../../assets/email.png')} text={contactInfo} />
                     <Text style={styles.hours}>
@@ -312,25 +335,29 @@ const VolunteeringScreen = ({ route, navigation }) => {
                     </Text>
                 </View>
 
-                <MapView
-                    style={styles.map}
-                    region={{
-                        latitude: formattedLatitude,
-                        longitude: formattedLongitude,
-                        latitudeDelta: 0.1122,
-                        longitudeDelta: 0.0921,
-                    }}>
-                    <Marker coordinate={{ latitude: formattedLatitude, longitude: formattedLongitude }} title={itemData.name} description={fullAddress} />
-
-                </MapView>
+                {isValidCoordinates() ? (
+                    <MapView
+                        style={styles.map}
+                        region={{
+                            latitude: formattedLatitude,
+                            longitude: formattedLongitude,
+                            latitudeDelta: 0.1122,
+                            longitudeDelta: 0.0921,
+                        }}
+                    >
+                        <Marker coordinate={{ latitude: formattedLatitude, longitude: formattedLongitude }} title={itemData.name} description={fullAddress} />
+                    </MapView>
+                ) : (
+                    <Text style={styles.noCoordinatesText}>Map not available</Text>
+                )}
             </View>
             
             <View style={styles.descriptionContainer}>
                 <Text style={styles.descriptionTitle}> 
-                    {itemData.descriptionTitle ? itemData.descriptionTitle : null}
+                    {itemData.name}
                 </Text>
                 <Text style={styles.description}> 
-                    {itemData.description ? itemData.description : 'No description provided'}
+                    {itemData.description ? itemData.description.replaceAll("\\n", "\n") : 'No description provided'}
                 </Text>
             </View>
 
@@ -454,6 +481,8 @@ const styles = StyleSheet.create ({
     map: {
         width: 170,
         height: '90%',
+        borderRadius: 1,
+        borderColor: colors.primary,
     },
     
     descriptionTitle: {
@@ -474,6 +503,7 @@ const styles = StyleSheet.create ({
         borderWidth: 1, 
         borderColor: colors.primary, 
         borderRadius: 8,
+        paddingBottom: 15,
     },
     centeredView: {
         flex: 1,
@@ -504,7 +534,13 @@ const styles = StyleSheet.create ({
         color: 'blue',
         marginBottom: 15,
     },
-    
+    noCoordinatesText: {
+        fontSize: 14,
+        color: 'red',
+        textAlign: 'center',
+        marginTop: 20,
+        width: '40%',
+    },
 })
 
 export default VolunteeringScreen;
