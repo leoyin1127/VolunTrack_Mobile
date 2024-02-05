@@ -21,7 +21,7 @@
       "bundleIdentifier": "com.leoyin.voluntrack",
       "buildNumber": "3",
       "config": {
-        "googleMapsApiKey": "AIzaSyDT1TkCXgEDl6eH-mpW7Zq1dBiLX3A6e6E"
+        "googleMapsApiKey": "AIzaSyAxtGbEVHpfpCKDvM24QjO4gn_8qQdZs2U"
       }
     },
     "android": {
@@ -33,7 +33,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDT1TkCXgEDl6eH-mpW7Zq1dBiLX3A6e6E"
+          "apiKey": "AIzaSyAxtGbEVHpfpCKDvM24QjO4gn_8qQdZs2U"
         }
       }
     },

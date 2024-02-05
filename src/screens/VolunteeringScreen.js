@@ -5,6 +5,7 @@ import MapView, { Marker } from 'react-native-maps';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Clipboard } from 'react-native';
 
 import colors from '../../assets/colors/colors';
 
@@ -14,6 +15,13 @@ const DetailItem = ({ icon, text }) => (
         <Text style={styles.detailText}>{text}</Text> 
     </View>
 );
+
+const isValidUrl = (urlString) => {
+    const regex = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/;
+    return regex.test(urlString);
+};
+
+
 
 const VolunteeringScreen = ({ route, navigation }) => {
  // 状态定义
@@ -153,6 +161,17 @@ const VolunteeringScreen = ({ route, navigation }) => {
     if (!itemData) {
         return <View style={styles.container}><Text>No data available</Text></View>;
     }
+    
+    const handleButtonPress = () => {
+        if (isValidUrl(itemData.url)) {
+          Linking.openURL(itemData.url);
+        } else {
+          // Copy the text to the clipboard
+          Clipboard.setString(itemData.url);
+          alert('Text copied to clipboard');
+        }
+    };
+
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.name}>{itemData.name}</Text>
@@ -173,7 +192,10 @@ const VolunteeringScreen = ({ route, navigation }) => {
                         <Text style={styles.modalText}>Apply at:</Text>
                         <Text style={styles.urlText}>{itemData.url}</Text>
                         <View style={{ marginBottom: 8 }}>
-                            <Button title="Open Link" onPress={() => Linking.openURL(itemData.url)} />
+                        <Button
+                            title={isValidUrl(itemData.url) ? "Open Link" : "Copy Text"}
+                            onPress={handleButtonPress}
+                        />
                         </View>
                         <Button title="Close" onPress={() => setModalVisible(false)} />
                     </View>

@@ -1,21 +1,7 @@
 import { useState } from 'react';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import { initializeApp } from 'firebase/app';
 import yelp from '../api/yelp';
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyALVYJaT3Q-tWD_j2VVDTI2o-JS0g_ah-Y",
-  authDomain: "volun-track.firebaseapp.com",
-  projectId: "volun-track",
-  storageBucket: "volun-track.appspot.com",
-  messagingSenderId: "348051927128",
-  appId: "1:348051927128:web:30169cf42d5053de5c1a2d",
-  measurementId: "G-WDQ5PPH1ZJ"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+import { app } from '../api/firebaseConfig';
 
 export default () => {
   const [results, setResults] = useState([]);
