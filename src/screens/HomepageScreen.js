@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Button, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,11 +6,55 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import colors from '../../assets/colors/colors';
 import HomepageSearchBar from '../components/HomepageSearchBar';
+import ResultsList from '../components/ResultsList';
 
 const HomepageScreen = ({route, navigation}) => {
     
     const [totalCompleted, setTotalCompleted] = useState(0); 
     const [totalHours, setTotalHours] = useState(100); 
+
+    const [tasks, setTasks] = useState([]);
+    const [filteredTasks, setFilteredTasks] = useState([]);
+
+
+    const fetchTasks = async () => {
+        try {
+            const keys = await AsyncStorage.getAllKeys();
+            const result = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@task_status_')));
+            const fetchedTasks = result.map(([key, value]) => JSON.parse(value));
+            setTasks(fetchedTasks);
+            handleFilterChange(filter, fetchedTasks); // Apply filter to newly fetched tasks
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        }
+    };
+    
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const fetchDataAndUpdateState = async () => {
+                await fetchTasks(); // Fetch tasks from AsyncStorage
+                handleFilterChange(filter); // Re-apply the current filter
+                // Any other state updates you need when the screen is focused can go here
+            };
+    
+            fetchDataAndUpdateState();
+        }, [filter]) // Add any other dependencies here
+    );
+    
+
+    const [filter, setFilter] = useState('all'); // 默认显示所有任务
+
+    const handleFilterChange = (newFilter, allTasks = tasks) => {
+        setFilter(newFilter); // Update the filter state
+        const filtered = (allTasks || tasks).filter(task => {
+            if (newFilter === 'all') return true;
+            if (newFilter === 'ongoing') return task.status === 'Ongoing';
+            if (newFilter === 'completed') return task.status === 'Completed';
+            return false;
+        });
+        setFilteredTasks(filtered); // Update the filtered tasks state
+    };
 
     useEffect(() => {
         const loadInitialTotalCompleted = async () => {
@@ -86,10 +130,16 @@ const HomepageScreen = ({route, navigation}) => {
             
             <Text style = { styles.hourText }> {totalCompleted}/{totalHours} Hours Completed</Text>
             
-            <Text style = { styles.subHeader }>Ongoing Tasks</Text>
+            <View style={styles.filterOptions}>
+                <Button title="All" onPress={() => handleFilterChange('all')} />
+                <Button title="Ongoing" onPress={() => handleFilterChange('ongoing')} />
+                <Button title="Completed" onPress={() => handleFilterChange('completed')} />
+            </View>
 
-            <Text style = { styles.subHeader }>Completed Tasks</Text>
-
+            <ResultsList
+                results={filteredTasks}
+                navigation={navigation}
+            />
             <StatusBar style = "auto" />
             
         </ScrollView>

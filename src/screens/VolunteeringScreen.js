@@ -1,6 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TextInput, View, Image, ScrollView, Modal, Linking, Button } from 'react-native';
-import { TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View, Image, ScrollView, Modal, Linking, Button, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useState, useEffect } from 'react';
@@ -27,13 +26,43 @@ const isValidUrl = (urlString) => {
 const VolunteeringScreen = ({ route, navigation }) => {
  // 状态定义
     const itemData = route.params?.itemData; // 从路由参数获取志愿活动数据
-    const [modalVisible, setModalVisible] = useState(false); // 控制模态框的状态
+    const [applyModalVisible, setApplyModalVisible] = useState(false); // For "Apply Now" modal
+    const [recordModalVisible, setRecordModalVisible] = useState(false); // For "Record Hours" modal
+    const [hoursRecorded, setHoursRecorded] = useState(false); // Tracks if hours are recorded
+
     const [isBookmarked, setIsBookmarked] = useState(false); // 控制书签状态
     const bookmarkKey = `@bookmark_${itemData?.id}`; // 基于活动ID生成一个唯一的键
 
     const [sliderValue, setSliderValue] = useState(1); // Slider Determines 'Task Status' 
     const [completedHours, setCompletedHours] = useState(''); // User Enters Hours / Task
+    
+    const resetStatusAndHours = async () => {
+        try {
+            const key = `@completed_hours_${itemData.id}`;
+            await AsyncStorage.removeItem(key); // Remove the stored hours
+            setSliderValue(1); // Reset slider to "Not Completed"
+            setCompletedHours(''); // Clear recorded hours state
+            setHoursRecorded(false); // Reset hours recorded status
+        } catch (error) {
+            console.error('Error resetting status and hours:', error);
+        }
+    };
 
+    const storeStatus = async () => {
+        try {
+            const status = sliderValue === 1 ? 'Not Completed' : (sliderValue === 2 ? 'Ongoing' : 'Completed');
+            const updatedItemData = { ...itemData, status: status }; // Add 'status' to your task object
+            await AsyncStorage.setItem(`@task_status_${itemData.id}`, JSON.stringify(updatedItemData)); // Store the entire task with the status
+        } catch (error) {
+            console.error('Error storing task status:', error);
+        }
+    };
+    
+    // Call storeStatus() when sliderValue changes
+    useEffect(() => {
+        storeStatus();
+    }, [sliderValue]);
+    
     const handleBookmark = async () => {
         const newBookmarkStatus = !isBookmarked;
         setIsBookmarked(newBookmarkStatus);
@@ -136,10 +165,6 @@ const VolunteeringScreen = ({ route, navigation }) => {
         }
     };
 
-    const handleApplyNow = () => {
-        setModalVisible(true);
-    };
-
     let contactInfo = 'Contact Info Not Available';
     if (itemData.email) {
         contactInfo = itemData.email;
@@ -220,25 +245,19 @@ const VolunteeringScreen = ({ route, navigation }) => {
         };
         // Slider Functionality For Setting Task As Not Complete, Ongoing, Complete
 
-        // Individual Hours Recorded By User / Task
         const handleRecordHours = async () => {
             try {
                 const key = `@completed_hours_${itemData.id}`;
                 const hoursToRecord = completedHours.trim() === '' ? '0' : completedHours;
                 
                 await AsyncStorage.setItem(key, hoursToRecord);
+                setHoursRecorded(true); // Indicate that hours have been recorded
+                setRecordModalVisible(false); // Close the modal
             } catch (error) {
                 console.error('Error storing completed hours:', error);
-                
-                navigation.navigate('Homepage', { sliderValue });
             }
-        
-        
-            setModalVisible(false);
-            
-            navigation.navigate('Homepage');
         };
-        // Individual Hours Recorded By User / Task
+        
         
         // User Input Functionality For Saving Completed Hours
         const retrieveCompletedHours = async () => {
@@ -274,32 +293,21 @@ const VolunteeringScreen = ({ route, navigation }) => {
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.name}>{itemData.name}</Text>
-            
-            {sliderValue === 1 && ( // Apply Now Button If Task Is New
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={handleApplyNow}>
-                    <Text style={styles.buttonText}>Apply Now!</Text>
-                </TouchableOpacity>
-            )}
-
-            {(sliderValue === 2 || sliderValue == 3) && ( // Record Task Button If Task Is Ongoing / Completed
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => setModalVisible(true)}>
-                    <Text style={styles.buttonText}>Record Hours!</Text>
-                </TouchableOpacity>
-            )}
+            <TouchableOpacity
+                style={styles.button}
+                onPress={() => setApplyModalVisible(true)}> 
+                <Text style={styles.buttonText}>Apply Now!</Text>
+            </TouchableOpacity>
             
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={modalVisible && sliderValue === 1}
-                onRequestClose={() => setModalVisible(false)}
+                visible={applyModalVisible} // Controlled by applyModalVisible
+                onRequestClose={() => setApplyModalVisible(false)}
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Apply @:</Text>
+                        <Text style={styles.modalText}>Apply at:</Text>
                         <Text style={styles.urlText}>{itemData.url}</Text>
                         <View style={{ marginBottom: 8 }}>
                         <Button
@@ -307,36 +315,10 @@ const VolunteeringScreen = ({ route, navigation }) => {
                             onPress={handleButtonPress}
                         />
                         </View>
-                        <Button title="Close" onPress={() => setModalVisible(false)} />
+                        <Button title="Close" onPress={() => setApplyModalVisible(false)} />
                     </View>
                 </View>
             </Modal>
-            
-            <Modal // Prompt For Users To Record Hours
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible && (sliderValue === 2 ||sliderValue === 3 )}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                        {(sliderValue === 2 || sliderValue == 3) && (
-                            <>
-                                <Text style={styles.modalText}>Record Hours:</Text>
-                                <TextInput
-                                    style={[styles.input, { borderColor: colors.primary, borderWidth: 2, width: 90}]}
-                                    keyboardType="numeric"
-                                    value={completedHours}
-                                    onChangeText={(text) => setCompletedHours(text)}
-                                    textAlign = 'center'
-                                />
-                                <Button title="Record" onPress={handleRecordHours} />
-                            </>
-                        )}
-                        <Button title="Close" onPress={() => setModalVisible(false)} />
-                    </View>
-                </View>
-            </Modal> 
             
             <View style={styles.row}>
 
@@ -388,7 +370,8 @@ const VolunteeringScreen = ({ route, navigation }) => {
                     Status: {getStatusText().text} 
                 </Text>
 
-                <Slider // Keep Track Of Task Progress Using Slider
+                <Slider
+                    disabled={hoursRecorded} // Disable slider if hours are recorded
                     style={{ width: '90%' }}
                     value={sliderValue}
                     minimumValue={1}
@@ -398,9 +381,61 @@ const VolunteeringScreen = ({ route, navigation }) => {
                 />
             </View>
 
-            <Text style={styles.completedHours}>
-                {completedHours ? `${completedHours} Completed Hours` : 'Completed Hours Not Recorded'}
-            </Text>
+            { (sliderValue === 3) && (
+                <TouchableOpacity
+                    style={styles.recordButton}
+                    onPress={() => setRecordModalVisible(true)}> 
+                    <Text style={styles.buttonText}>Record Hours!</Text>
+                </TouchableOpacity>
+            )}
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={recordModalVisible} // Controlled by recordModalVisible
+                onRequestClose={() => setRecordModalVisible(false)}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Record Hours:</Text>
+                        <TextInput
+                            style={[styles.input, { borderColor: colors.primary, borderWidth: 2, width: 90}]}
+                            keyboardType="numeric"
+                            value={completedHours}
+                            onChangeText={(text) => setCompletedHours(text)}
+                            textAlign='center'
+                        />
+                        <Button title="Record" onPress={handleRecordHours} />
+                        <Button title="Close" onPress={() => setRecordModalVisible(false)} />
+                    </View>
+                </View>
+            </Modal>
+
+            {hoursRecorded && (
+                <TouchableOpacity
+                    style={styles.resetButton}
+                    onPress={() => {
+                        // Show confirmation dialog
+                        Alert.alert(
+                            "Reset Status",
+                            "Are you sure you want to reset the status and recorded hours?",
+                            [
+                                { text: "Cancel", style: "cancel" },
+                                { text: "Yes", onPress: () => resetStatusAndHours() },
+                            ],
+                            { cancelable: true }
+                        );
+                    }}>
+                    <Text style={styles.buttonText}>Reset Status</Text>
+                </TouchableOpacity>
+            )}
+
+            { (sliderValue === 3) && (
+                <Text style={styles.completedHours}>
+                    {completedHours ? `${completedHours} Hours Recorded! ` : 'Completed Hours Not Recorded'}
+                </Text>
+            )}
+            
 
             <StatusBar style="auto" />
 
@@ -475,6 +510,7 @@ const styles = StyleSheet.create ({
         marginVertical: 15,
         textAlign: 'center', 
         fontWeight: 'bold',
+        marginBottom: 40,
     },
     button: {
         backgroundColor: colors.primary, // Use your theme color
@@ -499,6 +535,24 @@ const styles = StyleSheet.create ({
         fontSize: 18,
         alignSelf: 'center',
         fontWeight: 'bold',
+    },
+    recordButton: {
+        backgroundColor: colors.primary, // Use your theme color
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        alignSelf: 'center', 
+        marginTop: 20,
+        width: '75%',
+        shadowColor: "#000", // 阴影颜色
+        shadowOffset: {
+            width: 0, // 水平偏移量
+            height: 5, // 垂直偏移量
+        },
+        shadowOpacity: 0.5, // 阴影不透明度
+        shadowRadius: 3.84, // 阴影半径
+        elevation: 5, // 仅在 Android 上的阴影高度
+        overflow: 'hidden', // 确保子视图不会超出边界
     },
     map: {
         width: 170,
@@ -563,6 +617,16 @@ const styles = StyleSheet.create ({
         marginTop: 20,
         width: '40%',
     },
+    resetButton: {
+        backgroundColor: 'red', // Use a different color to distinguish
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        alignSelf: 'center', 
+        marginTop: 20,
+        width: '75%',
+        // Add any other styling as needed
+    },    
 })
 
 export default VolunteeringScreen;
