@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Button, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,11 +6,65 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import colors from '../../assets/colors/colors';
 import HomepageSearchBar from '../components/HomepageSearchBar';
+import ResultsList from '../components/ResultsList';
 
 const HomepageScreen = ({route, navigation}) => {
     
     const [totalCompleted, setTotalCompleted] = useState(0); 
     const [totalHours, setTotalHours] = useState(100); 
+
+    const [tasks, setTasks] = useState([]);
+    const [filteredTasks, setFilteredTasks] = useState([]);
+    const [, setFilter] = useState('all'); // 默认显示所有任务
+    const [activeFilter, setActiveFilter] = useState('all');
+
+    const fetchTasks = async () => {
+        try {
+            const keys = await AsyncStorage.getAllKeys();
+            const result = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@task_status_')));
+            const fetchedTasks = result.map(([key, value]) => JSON.parse(value));
+            setTasks(fetchedTasks);
+            handleFilterChange('all', fetchedTasks); // This ensures filter is applied right after fetching
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        }
+    };    
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchDataAndUpdateState = async () => {
+                await fetchTasks(); // Fetch tasks from AsyncStorage
+                handleFilterChange('all'); // Always reset to 'All' filter upon focusing
+            };
+    
+            fetchDataAndUpdateState();
+        }, []) // Dependencies array is empty to indicate this effect doesn't depend on any state or props
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchTasks(); // handleFilterChange is called within fetchTasks
+        }, [])
+    );
+    
+    const handleFilterChange = (newFilter, allTasks = tasks) => {
+        setActiveFilter(newFilter);
+        setFilter(newFilter); // Update the filter state
+        const filtered = (allTasks || tasks).filter(task => {
+            if (newFilter === 'all') return true;
+            if (newFilter === 'ongoing') return task.status === 'Ongoing';
+            if (newFilter === 'completed') return task.status === 'Completed';
+            return false;
+        });
+        setFilteredTasks(filtered); // Update the filtered tasks state
+    };
+
+    const FilterButton = ({ title, isActive, onPress }) => (
+        <TouchableOpacity style={styles.filterButton} onPress={onPress}>
+            <Text style={[styles.filterButtonText, isActive && styles.filterButtonActiveText]}>{title}</Text>
+            {isActive && <View style={styles.activeFilterLine} />}
+        </TouchableOpacity>
+    );      
 
     useEffect(() => {
         const loadInitialTotalCompleted = async () => {
@@ -86,10 +140,16 @@ const HomepageScreen = ({route, navigation}) => {
             
             <Text style = { styles.hourText }> {totalCompleted}/{totalHours} Hours Completed</Text>
             
-            <Text style = { styles.subHeader }>Ongoing Tasks</Text>
+            <View style={styles.filterOptions}>
+                <FilterButton title="ALL" isActive={activeFilter === 'all'} onPress={() => handleFilterChange('all')} />
+                <FilterButton title="ONGOING" isActive={activeFilter === 'ongoing'} onPress={() => handleFilterChange('ongoing')} />
+                <FilterButton title="COMPLETED" isActive={activeFilter === 'completed'} onPress={() => handleFilterChange('completed')} />
+            </View>
 
-            <Text style = { styles.subHeader }>Completed Tasks</Text>
-
+            <ResultsList
+                results={filteredTasks}
+                navigation={navigation}
+            />
             <StatusBar style = "auto" />
             
         </ScrollView>
@@ -173,7 +233,35 @@ const styles = StyleSheet.create ({
         height: 60,
         marginTop: 60,
         marginRight: 15,
-    }
+    },
+    filterOptions: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingTop: 5, 
+
+    },
+    filterButton: {
+        flex: 1,
+        alignItems: 'center',
+        padding: 10, // Adjust as needed for padding around the text
+    },
+    filterButtonText: {
+        textAlign: 'center',
+        fontWeight: 'normal',
+        color: colors.primary,
+    },
+    filterButtonActiveText: {
+        fontWeight: 'bold',
+        color: colors.primary,
+    },
+    activeFilterLine: {
+        height: 2,
+        width: '80%', // Line will fill the width of the button
+        backgroundColor: colors.primary,
+        marginTop: 5, // Space between text and line
+        borderRadius: 5,
+    },
 })
 
 export default HomepageScreen;
