@@ -27,7 +27,6 @@ const VolunteeringScreen = ({ route, navigation }) => {
  // 状态定义
     const itemData = route.params?.itemData; // 从路由参数获取志愿活动数据
     const [applyModalVisible, setApplyModalVisible] = useState(false); // For "Apply Now" modal
-    const [recordModalVisible, setRecordModalVisible] = useState(false); // For "Record Hours" modal
     const [hoursRecorded, setHoursRecorded] = useState(false); // Tracks if hours are recorded
 
     const [isBookmarked, setIsBookmarked] = useState(false); // 控制书签状态
@@ -35,6 +34,7 @@ const VolunteeringScreen = ({ route, navigation }) => {
 
     const [sliderValue, setSliderValue] = useState(1); // Slider Determines 'Task Status' 
     const [completedHours, setCompletedHours] = useState(''); // User Enters Hours / Task
+    const [isSliderLocked, setIsSliderLocked] = useState(false);
     
     const resetStatusAndHours = async () => {
         try {
@@ -43,6 +43,8 @@ const VolunteeringScreen = ({ route, navigation }) => {
             setSliderValue(1); // Reset slider to "Not Completed"
             setCompletedHours(''); // Clear recorded hours state
             setHoursRecorded(false); // Reset hours recorded status
+            setIsSliderLocked(false);
+            await AsyncStorage.removeItem(`@slider_locked_${itemData.id}`);
         } catch (error) {
             console.error('Error resetting status and hours:', error);
         }
@@ -187,18 +189,18 @@ const VolunteeringScreen = ({ route, navigation }) => {
         checkBookmarkStatus();
     }, []);
     
-      useEffect(() => {
+    useEffect(() => {
         retrieveSliderValue(); // Save Slider Value Individual To Task
         retrieveCompletedHours(); // Save Hours Value Individual To Task
-      }, []);
+    }, []);
     
       // Slider Functionality For Setting Task As Not Complete, Ongoing, Complete
 
-      useEffect(() => {
+    useEffect(() => {
         storeSliderValue();
-      }, [sliderValue]);
+    }, [sliderValue]);
     
-      const storeSliderValue = async () => {
+    const storeSliderValue = async () => {
         try {
           if (itemData?.id) {
             const key = `@slider_value_${itemData.id}`;
@@ -209,7 +211,7 @@ const VolunteeringScreen = ({ route, navigation }) => {
         }
       };
     
-      const retrieveSliderValue = async () => {
+    const retrieveSliderValue = async () => {
         try {
           if (itemData?.id) {
             const key = `@slider_value_${itemData.id}`;
@@ -221,9 +223,9 @@ const VolunteeringScreen = ({ route, navigation }) => {
         } catch (error) {
           console.error('Error retrieving slider value:', error);
         }
-      };
+    };
     
-      const getStatusText = () => {
+    const getStatusText = () => {
         switch (sliderValue) {
             case 1:
               statusText = 'Not Completed';
@@ -239,41 +241,104 @@ const VolunteeringScreen = ({ route, navigation }) => {
               break;
             default:
               break;
-          }
+        }
         
-          return { text: statusText, color: statusColor };
-        };
-        // Slider Functionality For Setting Task As Not Complete, Ongoing, Complete
-
-        const handleRecordHours = async () => {
-            try {
-                const key = `@completed_hours_${itemData.id}`;
-                const hoursToRecord = completedHours.trim() === '' ? '0' : completedHours;
-                
-                await AsyncStorage.setItem(key, hoursToRecord);
-                setHoursRecorded(true); // Indicate that hours have been recorded
-                setRecordModalVisible(false); // Close the modal
-            } catch (error) {
-                console.error('Error storing completed hours:', error);
+        return { text: statusText, color: statusColor };
+    };
+        
+    // Slider Functionality For Setting Task As Not Complete, Ongoing, Complete
+    const handleRecordHours = async () => {
+        try {
+            // Trim input to remove leading/trailing whitespace
+            const hoursToRecord = completedHours.trim();
+    
+            // Check if the input is blank or "0"
+            if (hoursToRecord === '' || hoursToRecord === '0') {
+                Alert.alert(
+                    "Invalid Input",
+                    "Please enter a number of hours greater than 0.",
+                    [{ text: "OK" }]
+                );
+                return; // Stop execution if invalid
             }
-        };
+
+            setIsSliderLocked(true);
+            await AsyncStorage.setItem(`@slider_locked_${itemData.id}`, 'true');
         
+            // Key for AsyncStorage based on item ID
+            const key = `@completed_hours_${itemData.id}`;
+            // Proceed with storing the non-empty, non-zero hours
+             await AsyncStorage.setItem(key, hoursToRecord);
+             setHoursRecorded(true); // Indicate that hours have been recorded
         
-        // User Input Functionality For Saving Completed Hours
-        const retrieveCompletedHours = async () => {
+            // Success message
+            Alert.alert(
+                "Recorded",
+                "Your hours have been successfully recorded!",
+                [{ text: "OK" }]
+            );
+        } catch (error) {
+            console.error('Error storing completed hours:', error);
+           // Optionally, show an error alert
+            Alert.alert(
+                "Error",
+                "There was an error recording your hours. Please try again.",
+                [{ text: "OK" }]
+            );
+        }
+    };
+    useEffect(() => {
+        const fetchLockStatus = async () => {
             try {
-                if (itemData?.id) {
-                    const key = `@completed_hours_${itemData.id}`;
-                    const savedCompletedHours = await AsyncStorage.getItem(key);
-                    if (savedCompletedHours !== null) {
-                        setCompletedHours(savedCompletedHours);
-                    }
+                const sliderLockStatus = await AsyncStorage.getItem(`@slider_locked_${itemData.id}`);
+                if (sliderLockStatus === 'true') {
+                    setIsSliderLocked(true);
+                } else {
+                    setIsSliderLocked(false);
                 }
             } catch (error) {
-                console.error('Error retrieving completed hours:', error);
+                console.error('Error retrieving slider lock status:', error);
             }
         };
-        // User Input Functionality For Saving Completed Hours
+    
+        fetchLockStatus();
+    }, []);
+    
+    useEffect(() => {
+        const initializeState = async () => {
+            try {
+                const sliderLockStatus = await AsyncStorage.getItem(`@slider_locked_${itemData.id}`);
+                setIsSliderLocked(sliderLockStatus === 'true');
+    
+                const recordedHours = await AsyncStorage.getItem(`@completed_hours_${itemData.id}`);
+                // Consider hours recorded if there's a non-null and non-empty string stored
+                setHoursRecorded(!!recordedHours && recordedHours.trim().length > 0);
+    
+            } catch (error) {
+                console.error('Error initializing state:', error);
+            }
+        };
+    
+        initializeState();
+    }, []);
+    
+        
+    // User Input Functionality For Saving Completed Hours
+    const retrieveCompletedHours = async () => {
+        try {
+            if (itemData?.id) {
+                const key = `@completed_hours_${itemData.id}`;
+                const savedCompletedHours = await AsyncStorage.getItem(key);
+                if (savedCompletedHours !== null) {
+                    setCompletedHours(savedCompletedHours);
+                }
+            }
+        } catch (error) {
+            console.error('Error retrieving completed hours:', error);
+        }
+    };
+    // User Input Functionality For Saving Completed Hours
+        
 
     // 如果没有活动数据，显示错误信息
     if (!itemData) {
@@ -291,7 +356,10 @@ const VolunteeringScreen = ({ route, navigation }) => {
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView 
+            style={styles.container} 
+            contentContainerStyle={{ paddingBottom: 50 }}
+        >
             <Text style={styles.name}>{itemData.name}</Text>
             <TouchableOpacity
                 style={styles.button}
@@ -366,13 +434,18 @@ const VolunteeringScreen = ({ route, navigation }) => {
             </View>
 
             <View style={{ alignItems: 'center', marginTop: 20 }}> 
-                <Text style={{ color: getStatusText().color, fontFamily: 'PingFangSC-Semibold', fontSize: 20, alignSelf: 'center', }}> 
-                    Status: {getStatusText().text} 
-                </Text>
+                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                    <Text style={{ color: getStatusText().color, fontFamily: 'PingFangSC-Semibold', fontSize: 20 }}> 
+                        Status
+                    </Text>
+                    <Text style={{ color: getStatusText().color, fontFamily: 'PingFangSC-Semibold', fontSize: 20 }}> 
+                        {getStatusText().text}
+                    </Text>
+                </View>
 
                 <Slider
-                    disabled={hoursRecorded} // Disable slider if hours are recorded
-                    style={{ width: '90%' }}
+                    disabled={isSliderLocked || hoursRecorded} // Use isSliderLocked to control the disabled state
+                    style={{ width: '100%' }}
                     value={sliderValue}
                     minimumValue={1}
                     maximumValue={3}
@@ -382,34 +455,35 @@ const VolunteeringScreen = ({ route, navigation }) => {
             </View>
 
             { (sliderValue === 3) && (
-                <TouchableOpacity
-                    style={styles.recordButton}
-                    onPress={() => setRecordModalVisible(true)}> 
-                    <Text style={styles.buttonText}>Record Hours!</Text>
-                </TouchableOpacity>
-            )}
-
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={recordModalVisible} // Controlled by recordModalVisible
-                onRequestClose={() => setRecordModalVisible(false)}
-            >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Record Hours:</Text>
-                        <TextInput
-                            style={[styles.input, { borderColor: colors.primary, borderWidth: 2, width: 90}]}
-                            keyboardType="numeric"
-                            value={completedHours}
-                            onChangeText={(text) => setCompletedHours(text)}
-                            textAlign='center'
-                        />
-                        <Button title="Record" onPress={handleRecordHours} />
-                        <Button title="Close" onPress={() => setRecordModalVisible(false)} />
+                <View style={{ alignItems: 'center', marginTop: 20 }}>
+                    
+                    <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                        <Text style={{ color: colors.primary, fontFamily: 'PingFangSC-Semibold', fontSize: 20 }}> 
+                            Record Your Hours
+                        </Text>
                     </View>
+                    <TextInput
+                        style={[styles.input, {
+                            height: 40, // Adjust to match the height of your buttons
+                            borderColor: colors.primary,
+                            borderWidth: 1,
+                            width: '95%', // Maintain the width as per your design
+                            marginTop: 10,
+                            borderRadius: 10,
+                            paddingLeft: 15,   
+                        }]}
+                        keyboardType="numeric"
+                        value={completedHours}
+                        onChangeText={(text) => setCompletedHours(text)}
+                        placeholder="Hours" // Placeholder text
+                    />
+                    <TouchableOpacity
+                        style={styles.recordButton}
+                        onPress={handleRecordHours}>
+                        <Text style={styles.buttonText}>Record Hours!</Text>
+                    </TouchableOpacity>
                 </View>
-            </Modal>
+            )}
 
             {hoursRecorded && (
                 <TouchableOpacity
@@ -430,13 +504,12 @@ const VolunteeringScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
             )}
 
-            { (sliderValue === 3) && (
+            {hoursRecorded && (
                 <Text style={styles.completedHours}>
-                    {completedHours ? `${completedHours} Hours Recorded! ` : 'Completed Hours Not Recorded'}
+                    {`${completedHours} Hours Recorded!`}
                 </Text>
             )}
             
-
             <StatusBar style="auto" />
 
         </ScrollView>
@@ -506,11 +579,10 @@ const styles = StyleSheet.create ({
     completedHours: {
         color: colors.primary,
         fontFamily: 'PingFangSC-Semibold', 
-        fontSize: 28, 
+        fontSize: 25, 
         marginVertical: 15,
         textAlign: 'center', 
         fontWeight: 'bold',
-        marginBottom: 40,
     },
     button: {
         backgroundColor: colors.primary, // Use your theme color
@@ -543,7 +615,7 @@ const styles = StyleSheet.create ({
         borderRadius: 5,
         alignSelf: 'center', 
         marginTop: 20,
-        width: '75%',
+        width: '95%',
         shadowColor: "#000", // 阴影颜色
         shadowOffset: {
             width: 0, // 水平偏移量
@@ -624,8 +696,16 @@ const styles = StyleSheet.create ({
         borderRadius: 5,
         alignSelf: 'center', 
         marginTop: 20,
-        width: '75%',
-        // Add any other styling as needed
+        width: '95%',
+        shadowColor: "#000", // 阴影颜色
+        shadowOffset: {
+            width: 0, // 水平偏移量
+            height: 5, // 垂直偏移量
+        },
+        shadowOpacity: 0.5, // 阴影不透明度
+        shadowRadius: 3.84, // 阴影半径
+        elevation: 5, // 仅在 Android 上的阴影高度
+        overflow: 'hidden', // 确保子视图不会超出边界
     },    
 })
 

@@ -15,7 +15,8 @@ const HomepageScreen = ({route, navigation}) => {
 
     const [tasks, setTasks] = useState([]);
     const [filteredTasks, setFilteredTasks] = useState([]);
-
+    const [, setFilter] = useState('all'); // 默认显示所有任务
+    const [activeFilter, setActiveFilter] = useState('all');
 
     const fetchTasks = async () => {
         try {
@@ -23,29 +24,31 @@ const HomepageScreen = ({route, navigation}) => {
             const result = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@task_status_')));
             const fetchedTasks = result.map(([key, value]) => JSON.parse(value));
             setTasks(fetchedTasks);
-            handleFilterChange(filter, fetchedTasks); // Apply filter to newly fetched tasks
+            handleFilterChange('all', fetchedTasks); // This ensures filter is applied right after fetching
         } catch (error) {
             console.error('Error fetching tasks:', error);
         }
-    };
-    
+    };    
 
     useFocusEffect(
-        React.useCallback(() => {
+        useCallback(() => {
             const fetchDataAndUpdateState = async () => {
                 await fetchTasks(); // Fetch tasks from AsyncStorage
-                handleFilterChange(filter); // Re-apply the current filter
-                // Any other state updates you need when the screen is focused can go here
+                handleFilterChange('all'); // Always reset to 'All' filter upon focusing
             };
     
             fetchDataAndUpdateState();
-        }, [filter]) // Add any other dependencies here
+        }, []) // Dependencies array is empty to indicate this effect doesn't depend on any state or props
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchTasks(); // handleFilterChange is called within fetchTasks
+        }, [])
     );
     
-
-    const [filter, setFilter] = useState('all'); // 默认显示所有任务
-
     const handleFilterChange = (newFilter, allTasks = tasks) => {
+        setActiveFilter(newFilter);
         setFilter(newFilter); // Update the filter state
         const filtered = (allTasks || tasks).filter(task => {
             if (newFilter === 'all') return true;
@@ -55,6 +58,13 @@ const HomepageScreen = ({route, navigation}) => {
         });
         setFilteredTasks(filtered); // Update the filtered tasks state
     };
+
+    const FilterButton = ({ title, isActive, onPress }) => (
+        <TouchableOpacity style={styles.filterButton} onPress={onPress}>
+            <Text style={[styles.filterButtonText, isActive && styles.filterButtonActiveText]}>{title}</Text>
+            {isActive && <View style={styles.activeFilterLine} />}
+        </TouchableOpacity>
+    );      
 
     useEffect(() => {
         const loadInitialTotalCompleted = async () => {
@@ -131,9 +141,9 @@ const HomepageScreen = ({route, navigation}) => {
             <Text style = { styles.hourText }> {totalCompleted}/{totalHours} Hours Completed</Text>
             
             <View style={styles.filterOptions}>
-                <Button title="All" onPress={() => handleFilterChange('all')} />
-                <Button title="Ongoing" onPress={() => handleFilterChange('ongoing')} />
-                <Button title="Completed" onPress={() => handleFilterChange('completed')} />
+                <FilterButton title="ALL" isActive={activeFilter === 'all'} onPress={() => handleFilterChange('all')} />
+                <FilterButton title="ONGOING" isActive={activeFilter === 'ongoing'} onPress={() => handleFilterChange('ongoing')} />
+                <FilterButton title="COMPLETED" isActive={activeFilter === 'completed'} onPress={() => handleFilterChange('completed')} />
             </View>
 
             <ResultsList
@@ -223,7 +233,35 @@ const styles = StyleSheet.create ({
         height: 60,
         marginTop: 60,
         marginRight: 15,
-    }
+    },
+    filterOptions: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingTop: 5, 
+
+    },
+    filterButton: {
+        flex: 1,
+        alignItems: 'center',
+        padding: 10, // Adjust as needed for padding around the text
+    },
+    filterButtonText: {
+        textAlign: 'center',
+        fontWeight: 'normal',
+        color: colors.primary,
+    },
+    filterButtonActiveText: {
+        fontWeight: 'bold',
+        color: colors.primary,
+    },
+    activeFilterLine: {
+        height: 2,
+        width: '80%', // Line will fill the width of the button
+        backgroundColor: colors.primary,
+        marginTop: 5, // Space between text and line
+        borderRadius: 5,
+    },
 })
 
 export default HomepageScreen;
