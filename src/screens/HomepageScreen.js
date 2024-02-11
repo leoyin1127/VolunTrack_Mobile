@@ -51,13 +51,13 @@ const HomepageScreen = ({route, navigation}) => {
         setActiveFilter(newFilter);
         setFilter(newFilter); // Update the filter state
         const filtered = (allTasks || tasks).filter(task => {
-            if (newFilter === 'all') return true;
+            if (newFilter === 'all') return task.status === 'Ongoing' || task.status === 'Completed';
             if (newFilter === 'ongoing') return task.status === 'Ongoing';
             if (newFilter === 'completed') return task.status === 'Completed';
             return false;
         });
         setFilteredTasks(filtered); // Update the filtered tasks state
-    };
+    };    
 
     const FilterButton = ({ title, isActive, onPress }) => (
         <TouchableOpacity style={styles.filterButton} onPress={onPress}>
@@ -146,10 +146,19 @@ const HomepageScreen = ({route, navigation}) => {
                 <FilterButton title="COMPLETED" isActive={activeFilter === 'completed'} onPress={() => handleFilterChange('completed')} />
             </View>
 
-            <ResultsList
-                results={filteredTasks}
-                navigation={navigation}
-            />
+            {filteredTasks.length > 0 ? (
+                <ResultsList
+                    results={filteredTasks}
+                    navigation={navigation}
+                />
+            ) : (
+                <Text style={styles.noResultsText}>
+                    {activeFilter === 'ongoing' && "You don't have any ongoing volunteering now."}
+                    {activeFilter === 'completed' && "You don't have any completed volunteering now."}
+                    {activeFilter === 'all' && "You don't have any ongoing/completed volunteering yet. Go apply one!"}
+                </Text>
+            )}
+            
             <StatusBar style = "auto" />
             
         </ScrollView>
@@ -261,6 +270,13 @@ const styles = StyleSheet.create ({
         backgroundColor: colors.primary,
         marginTop: 5, // Space between text and line
         borderRadius: 5,
+    },
+    noResultsText: {
+        width: '80%',
+        textAlign: 'center',
+        alignSelf: 'center',
+        marginTop: 15,
+        fontSize: 16,
     },
 })
 

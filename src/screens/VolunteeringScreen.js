@@ -5,7 +5,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Clipboard } from 'react-native';
-import Slider from '@react-native-community/slider';
 
 import colors from '../../assets/colors/colors';
 
@@ -21,7 +20,109 @@ const isValidUrl = (urlString) => {
     return regex.test(urlString);
 };
 
-
+const StatusTracker = ({ currentStatus, isLocked, advanceStatus, regressStatus }) => {
+    const statusStyles = (index) => {
+        const isActive = currentStatus === index + 1; // Determine if this is the active status
+        return {
+            flex: 1, // Ensure equal width for each label
+            textAlign: 'center', // Center text
+            fontSize: isActive ? 18 : 14, // Larger font size for active status
+            fontWeight: isActive ? 'bold' : 'normal', // Bold for active status
+            color: isActive ? '#1dc470' : 'black', // Highlight color for active status
+        };
+    };
+    return (
+        <View style={styles.statusTrackerContainer}>
+            <View style={styles.bubblesContainer}>
+                {['NotCompleted', 'Ongoing', 'Completed'].map((status, index) => {
+                    const statusIndex = index + 1;
+                    const isCompleted = isLocked || statusIndex < currentStatus;
+                    const isActive = statusIndex === currentStatus;
+                    return (
+                        <React.Fragment key={status}>
+                            {index !== 0 && (
+                                <View
+                                    style={[
+                                        styles.line,
+                                        (isCompleted || isActive) ? styles.lineCompleted : styles.lineDefault,
+                                    ]}
+                                />
+                            )}
+                            <View
+                                style={[
+                                    styles.bubble,
+                                    isCompleted ? styles.bubbleCompleted : styles.bubbleDefault,
+                                    isActive && styles.bubbleActive, // Apply the active style if the status is active
+                                ]}
+                            >
+                                {isCompleted ? (
+                                    <Ionicons name="checkmark" size={18} color="white" />
+                                ) : (
+                                    <Text style={[
+                                        styles.bubbleText,
+                                        isActive && { color: 'white' } // Change text color to white if the status is active
+                                    ]}>
+                                        {statusIndex}
+                                    </Text>
+                                )}
+                            </View>
+                        </React.Fragment>
+                    );
+                })}
+            </View>
+            <View style={styles.statusLabelsContainer}>
+                {['STEP 1', 'STEP 2', 'STEP 3'].map((label, index) => (
+                    <Text key={label} style={styles.stepText}>
+                        {label}
+                    </Text>
+                ))}
+            </View>
+            <View style={styles.statusLabelsContainer}>
+                {['Get Started', 'Ongoing', 'Completed'].map((label, index) => (
+                    <Text key={label} style={statusStyles(index)}>
+                        {label}
+                    </Text>
+                ))}
+            </View>
+            {!isLocked && (
+                <View style={styles.buttonsContainer}>
+                    {currentStatus === 1 && (
+                        <TouchableOpacity
+                            style={styles.getStartedGoBackButton} // Apply the specific style here
+                            onPress={() => advanceStatus()}
+                        >
+                            <Text style={styles.buttonText}>Get Started !</Text>
+                        </TouchableOpacity>
+                    )}
+                    {currentStatus > 1 && currentStatus < 3 && (
+                        <>
+                            <TouchableOpacity
+                                style={[styles.statusButton, styles.buttonActive]}
+                                onPress={regressStatus}
+                            >
+                                <Text style={styles.buttonText}>Go Back</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.statusButton, styles.buttonActive]}
+                                onPress={advanceStatus}
+                            >
+                                <Text style={styles.buttonText}>Completed !</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                    {currentStatus === 3 && (
+                        <TouchableOpacity
+                            style={styles.getStartedGoBackButton} // Apply the specific style here
+                            onPress={regressStatus}
+                        >
+                            <Text style={styles.buttonText}>Go Back</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
+        </View>
+    );
+};
 
 const VolunteeringScreen = ({ route, navigation }) => {
  // 状态定义
@@ -32,19 +133,31 @@ const VolunteeringScreen = ({ route, navigation }) => {
     const [isBookmarked, setIsBookmarked] = useState(false); // 控制书签状态
     const bookmarkKey = `@bookmark_${itemData?.id}`; // 基于活动ID生成一个唯一的键
 
-    const [sliderValue, setSliderValue] = useState(1); // Slider Determines 'Task Status' 
+    const advanceStatus = () => {
+        if (statusValue < 3) {
+            setStatusValue(statusValue + 1);
+        }
+    };
+
+    const regressStatus = () => {
+        if (statusValue > 1) {
+            setStatusValue(statusValue - 1);
+        }
+    };
+
+    const [statusValue, setStatusValue] = useState(1); // Status Determines 'Task Status' 
     const [completedHours, setCompletedHours] = useState(''); // User Enters Hours / Task
-    const [isSliderLocked, setIsSliderLocked] = useState(false);
+    const [isStatusLocked, setIsStatusLocked] = useState(false);
     
     const resetStatusAndHours = async () => {
         try {
             const key = `@completed_hours_${itemData.id}`;
             await AsyncStorage.removeItem(key); // Remove the stored hours
-            setSliderValue(1); // Reset slider to "Not Completed"
+            setStatusValue(1); // Reset status to "Not Completed"
             setCompletedHours(''); // Clear recorded hours state
             setHoursRecorded(false); // Reset hours recorded status
-            setIsSliderLocked(false);
-            await AsyncStorage.removeItem(`@slider_locked_${itemData.id}`);
+            setIsStatusLocked(false);
+            await AsyncStorage.removeItem(`@status_locked_${itemData.id}`);
         } catch (error) {
             console.error('Error resetting status and hours:', error);
         }
@@ -52,7 +165,7 @@ const VolunteeringScreen = ({ route, navigation }) => {
 
     const storeStatus = async () => {
         try {
-            const status = sliderValue === 1 ? 'Not Completed' : (sliderValue === 2 ? 'Ongoing' : 'Completed');
+            const status = statusValue === 1 ? 'Not Completed' : (statusValue === 2 ? 'Ongoing' : 'Completed');
             const updatedItemData = { ...itemData, status: status }; // Add 'status' to your task object
             await AsyncStorage.setItem(`@task_status_${itemData.id}`, JSON.stringify(updatedItemData)); // Store the entire task with the status
         } catch (error) {
@@ -60,10 +173,10 @@ const VolunteeringScreen = ({ route, navigation }) => {
         }
     };
     
-    // Call storeStatus() when sliderValue changes
+    // Call storeStatus() when statusValue changes
     useEffect(() => {
         storeStatus();
-    }, [sliderValue]);
+    }, [statusValue]);
     
     const handleBookmark = async () => {
         const newBookmarkStatus = !isBookmarked;
@@ -190,63 +303,42 @@ const VolunteeringScreen = ({ route, navigation }) => {
     }, []);
     
     useEffect(() => {
-        retrieveSliderValue(); // Save Slider Value Individual To Task
+        retrieveStatusValue(); // Save Status Value Individual To Task
         retrieveCompletedHours(); // Save Hours Value Individual To Task
     }, []);
     
-      // Slider Functionality For Setting Task As Not Complete, Ongoing, Complete
+      // Status Functionality For Setting Task As Not Complete, Ongoing, Complete
 
     useEffect(() => {
-        storeSliderValue();
-    }, [sliderValue]);
+        storeStatusValue();
+    }, [statusValue]);
     
-    const storeSliderValue = async () => {
+    const storeStatusValue = async () => {
         try {
           if (itemData?.id) {
-            const key = `@slider_value_${itemData.id}`;
-            await AsyncStorage.setItem(key, String(sliderValue));
+            const key = `@status_value_${itemData.id}`;
+            await AsyncStorage.setItem(key, String(statusValue));
           }
         } catch (error) {
-          console.error('Error storing slider value:', error);
+          console.error('Error storing status value:', error);
         }
       };
     
-    const retrieveSliderValue = async () => {
+    const retrieveStatusValue = async () => {
         try {
           if (itemData?.id) {
-            const key = `@slider_value_${itemData.id}`;
-            const savedSliderValue = await AsyncStorage.getItem(key);
-            if (savedSliderValue !== null) {
-              setSliderValue(parseInt(savedSliderValue, 10));
+            const key = `@status_value_${itemData.id}`;
+            const savedStatusValue = await AsyncStorage.getItem(key);
+            if (savedStatusValue !== null) {
+              setStatusValue(parseInt(savedStatusValue, 10));
             }
           }
         } catch (error) {
-          console.error('Error retrieving slider value:', error);
+          console.error('Error retrieving status value:', error);
         }
     };
-    
-    const getStatusText = () => {
-        switch (sliderValue) {
-            case 1:
-              statusText = 'Not Completed';
-              statusColor = 'red'; 
-              break;
-            case 2:
-              statusText = 'Ongoing';
-              statusColor = colors.secondary; 
-              break;
-            case 3:
-              statusText = 'Completed';
-              statusColor = colors.primary; 
-              break;
-            default:
-              break;
-        }
         
-        return { text: statusText, color: statusColor };
-    };
-        
-    // Slider Functionality For Setting Task As Not Complete, Ongoing, Complete
+    // Status Functionality For Setting Task As Not Complete, Ongoing, Complete
     const handleRecordHours = async () => {
         try {
             // Trim input to remove leading/trailing whitespace
@@ -262,8 +354,8 @@ const VolunteeringScreen = ({ route, navigation }) => {
                 return; // Stop execution if invalid
             }
 
-            setIsSliderLocked(true);
-            await AsyncStorage.setItem(`@slider_locked_${itemData.id}`, 'true');
+            setIsStatusLocked(true);
+            await AsyncStorage.setItem(`@status_locked_${itemData.id}`, 'true');
         
             // Key for AsyncStorage based on item ID
             const key = `@completed_hours_${itemData.id}`;
@@ -290,14 +382,14 @@ const VolunteeringScreen = ({ route, navigation }) => {
     useEffect(() => {
         const fetchLockStatus = async () => {
             try {
-                const sliderLockStatus = await AsyncStorage.getItem(`@slider_locked_${itemData.id}`);
-                if (sliderLockStatus === 'true') {
-                    setIsSliderLocked(true);
+                const statusLockStatus = await AsyncStorage.getItem(`@status_locked_${itemData.id}`);
+                if (statusLockStatus === 'true') {
+                    setIsStatusLocked(true);
                 } else {
-                    setIsSliderLocked(false);
+                    setIsStatusLocked(false);
                 }
             } catch (error) {
-                console.error('Error retrieving slider lock status:', error);
+                console.error('Error retrieving status lock status:', error);
             }
         };
     
@@ -307,8 +399,8 @@ const VolunteeringScreen = ({ route, navigation }) => {
     useEffect(() => {
         const initializeState = async () => {
             try {
-                const sliderLockStatus = await AsyncStorage.getItem(`@slider_locked_${itemData.id}`);
-                setIsSliderLocked(sliderLockStatus === 'true');
+                const statusLockStatus = await AsyncStorage.getItem(`@status_locked_${itemData.id}`);
+                setIsStatusLocked(statusLockStatus === 'true');
     
                 const recordedHours = await AsyncStorage.getItem(`@completed_hours_${itemData.id}`);
                 // Consider hours recorded if there's a non-null and non-empty string stored
@@ -434,27 +526,15 @@ const VolunteeringScreen = ({ route, navigation }) => {
             </View>
 
             <View style={{ alignItems: 'center', marginTop: 20 }}> 
-                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', paddingHorizontal: 10 }}>
-                    <Text style={{ color: getStatusText().color, fontFamily: 'PingFangSC-Semibold', fontSize: 20 }}> 
-                        Status
-                    </Text>
-                    <Text style={{ color: getStatusText().color, fontFamily: 'PingFangSC-Semibold', fontSize: 20 }}> 
-                        {getStatusText().text}
-                    </Text>
-                </View>
-
-                <Slider
-                    disabled={isSliderLocked || hoursRecorded} // Use isSliderLocked to control the disabled state
-                    style={{ width: '100%' }}
-                    value={sliderValue}
-                    minimumValue={1}
-                    maximumValue={3}
-                    step={1}
-                    onValueChange={(value) => setSliderValue(value)}
+                <StatusTracker
+                    currentStatus={statusValue}
+                    isLocked={isStatusLocked || hoursRecorded}
+                    advanceStatus={advanceStatus}
+                    regressStatus={regressStatus}
                 />
             </View>
 
-            { (sliderValue === 3) && (
+            { (statusValue === 3) && (
                 <View style={{ alignItems: 'center', marginTop: 20 }}>
                     
                     <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', paddingHorizontal: 10 }}>
@@ -469,7 +549,7 @@ const VolunteeringScreen = ({ route, navigation }) => {
                             borderWidth: 1,
                             width: '95%', // Maintain the width as per your design
                             marginTop: 10,
-                            borderRadius: 10,
+                            borderRadius: 5,
                             paddingLeft: 15,   
                         }]}
                         keyboardType="numeric"
@@ -706,7 +786,130 @@ const styles = StyleSheet.create ({
         shadowRadius: 3.84, // 阴影半径
         elevation: 5, // 仅在 Android 上的阴影高度
         overflow: 'hidden', // 确保子视图不会超出边界
-    },    
+    }, 
+    statusTrackerContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    bubblesContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    buttonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center', // Center the buttons horizontally
+        alignItems: 'center', // Center the buttons vertically if necessary
+        width: '100%', // Ensure the container takes full width
+        marginTop: 20, // Adjust as needed for spacing
+    },
+    line: {
+        width: 70, // Adjust the width as needed
+        height: 2,
+        backgroundColor: '#ccc',
+        marginHorizontal: 5,
+        borderRadius: 4,
+    },
+    lineCompleted: {
+        backgroundColor: '#1dc470', // Or your theme's completed color
+    },
+    lineDefault: {
+        backgroundColor: '#ccc', // Or your theme's default color
+    },
+    bubble: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        backgroundColor: 'white', // Default background color
+    },
+    bubbleActive: {
+        backgroundColor: '#1dc470', // Or your theme's active color
+    },
+    bubbleCompleted: {
+        backgroundColor: '#1dc470', // Or your theme's completed color
+    },
+    bubbleDefault: {
+        backgroundColor: 'white', // Or your theme's default color
+    },
+    bubbleText: {
+        color: 'black', // Or your theme's text color
+        fontWeight: 'bold',
+    },
+    statusButton: {
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.primary, // Or your theme's button color
+        marginHorizontal: 10, // Ensure some space between buttons
+        width: '45%', // Adjust as needed
+        shadowColor: "#000", // 阴影颜色
+        shadowOffset: {
+            width: 0, // 水平偏移量
+            height: 5, // 垂直偏移量
+        },
+        shadowOpacity: 0.5, // 阴影不透明度
+        shadowRadius: 3.84, // 阴影半径
+        elevation: 5, // 仅在 Android 上的阴影高度
+        overflow: 'hidden', // 确保子视图不会超出边界
+    },
+    buttonActive: {
+        opacity: 1,
+    },
+    getStartedGoBackButton: {
+        backgroundColor: colors.primary, // Use a different color to distinguish
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        alignSelf: 'center',
+        width: '95%', // Adjust the width as needed
+        shadowColor: "#000", // 阴影颜色
+        shadowOffset: {
+            width: 0, // 水平偏移量
+            height: 5, // 垂直偏移量
+        },
+        shadowOpacity: 0.5, // 阴影不透明度
+        shadowRadius: 3.84, // 阴影半径
+        elevation: 5, // 仅在 Android 上的阴影高度
+        overflow: 'hidden', // 确保子视图不会超出边界
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 18,
+        alignSelf: 'center',
+        fontWeight: 'bold',
+    },
+    statusTrackerContainer: {
+        // Ensure this container fills the width and aligns children in the center
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    bubblesContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between', // This ensures the bubbles are spread out evenly
+        alignItems: 'center',
+        paddingHorizontal: 30, // Adjust this value as needed
+    },
+    statusLabelsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        width: '100%',
+        paddingHorizontal: 20,
+        marginTop: 5,
+    },
+    stepText:{
+        color: 'gray',
+        marginTop: 5,
+        fontSize: 12,
+    },
 })
 
 export default VolunteeringScreen;
