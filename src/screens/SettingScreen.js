@@ -21,6 +21,7 @@ const SettingsScreen = () => {
       <TextInput 
         style={styles.input} 
         placeholder="Enter Total Hours"
+        placeholderTextColor = 'gray' // Made Placeholder Text Visible
         value={hours}
         onChangeText={setHours}
         keyboardType="numeric"

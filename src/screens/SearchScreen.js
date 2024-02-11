@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {
-  StatusBar,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { StatusBar, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import colors from '../../assets/colors/colors';
 import SearchSearchBar from '../components/SearchSearchBar';
@@ -15,14 +8,30 @@ import ResultsList from '../components/ResultsList';
 import useSearchApi from '../hooks/useResults'; // Ensure this is the correct path
 
 const SearchScreen = ({ navigation }) => {
-    const [term, setTerm] = useState('');
+    const [term, setTerm] = useState(''); 
     const [cities, setCities] = useState([]);
     const [autocompleteData, setAutocompleteData] = useState([]);
     const [showCityList, setShowCityList] = useState(false); // New state for toggling city list
     const [selectedCity, setSelectedCity] = useState('');
     const [searchApi, results, errorMessage] = useSearchApi();
     const [filteredResults, setFilteredResults] = useState([]);
+
+    const [isLoading, setIsLoading] = useState(false);
+
     const [isFocused, setIsFocused] = useState(false);
+    useFocusEffect(
+        useCallback(() => {
+            const performSearch = async () => {
+                setIsLoading(true); // Start loading
+                await searchApi('volunteer', selectedCity); // Perform the search with the default term
+                setIsLoading(false); // End loading
+            };
+        
+            performSearch();
+        }, [selectedCity]) // Dependency on selectedCity if you want to filter by city as well
+    );
+    
+    
 
     const toggleCityList = () => {
         setShowCityList(!showCityList); // Toggle visibility of city list
@@ -49,7 +58,7 @@ const SearchScreen = ({ navigation }) => {
     
         if (selectedCity) {
             cityResults = cityResults.filter(
-                (result) => result.location.city === selectedCity
+                (result) => (result.location && result.location.city === selectedCity) || (result.city === selectedCity)
             );
         }
     
@@ -74,9 +83,12 @@ const SearchScreen = ({ navigation }) => {
         }
     };
 
-    const handleSearchSubmit = () => {
-        searchApi(term, selectedCity); // Assuming searchApi can take both parameters
+    const handleSearchSubmit = async () => {
+        setIsLoading(true); // Start loading
+        await searchApi(term, selectedCity); // Perform the search
+        setIsLoading(false); // End loading
     };
+    
 
     // Define dynamic styles within the component function
     const dynamicStyles = StyleSheet.create({
@@ -118,7 +130,6 @@ const SearchScreen = ({ navigation }) => {
             marginRight: 10,
         },
     });
-
 
   return (
     <ScrollView style={staticStyles.scrollView}>
@@ -175,10 +186,11 @@ const SearchScreen = ({ navigation }) => {
             />
             )}
             
-            <ResultsList
-                results={filteredResults}
-                navigation={navigation}
-            />
+            {isLoading ? (
+                <ActivityIndicator style={{margin: 30}} size="large" color={colors.primary} />
+            ) : (
+                <ResultsList results={filteredResults} navigation={navigation} />
+            )}
             {filteredResults.length === 0 && (selectedCity || term) && (
                 <Text style={staticStyles.noResultsMessage}>
                     {selectedCity && !term ? 'No results found for the selected city' : null}

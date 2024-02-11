@@ -1,16 +1,111 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
 import colors from '../../assets/colors/colors';
 import HomepageSearchBar from '../components/HomepageSearchBar';
+
+import ResultsList from '../components/ResultsList';
+
 import AboutUsScreen from './AboutUsScreen';
 
-const HomepageScreen = ({navigation}) => {
-    const [totalHours, setTotalHours] = useState(100); // Default value
-    const completedHours = 0; // Example value
+
+const HomepageScreen = ({route, navigation}) => {
+    
+    const [totalCompleted, setTotalCompleted] = useState(0); 
+    const [totalHours, setTotalHours] = useState(100); 
+
+    const [tasks, setTasks] = useState([]);
+    const [filteredTasks, setFilteredTasks] = useState([]);
+    const [, setFilter] = useState('all'); // 默认显示所有任务
+    const [activeFilter, setActiveFilter] = useState('all');
+
+    const fetchTasks = async () => {
+        try {
+            const keys = await AsyncStorage.getAllKeys();
+            const result = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@task_status_')));
+            const fetchedTasks = result.map(([key, value]) => JSON.parse(value));
+            setTasks(fetchedTasks);
+            handleFilterChange('all', fetchedTasks); // This ensures filter is applied right after fetching
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        }
+    };    
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchDataAndUpdateState = async () => {
+                await fetchTasks(); // Fetch tasks from AsyncStorage
+                handleFilterChange('all'); // Always reset to 'All' filter upon focusing
+            };
+    
+            fetchDataAndUpdateState();
+        }, []) // Dependencies array is empty to indicate this effect doesn't depend on any state or props
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchTasks(); // handleFilterChange is called within fetchTasks
+        }, [])
+    );
+    
+    const handleFilterChange = (newFilter, allTasks = tasks) => {
+        setActiveFilter(newFilter);
+        setFilter(newFilter); // Update the filter state
+        const filtered = (allTasks || tasks).filter(task => {
+            if (newFilter === 'all') return task.status === 'Ongoing' || task.status === 'Completed';
+            if (newFilter === 'ongoing') return task.status === 'Ongoing';
+            if (newFilter === 'completed') return task.status === 'Completed';
+            return false;
+        });
+        setFilteredTasks(filtered); // Update the filtered tasks state
+    };    
+
+    const FilterButton = ({ title, isActive, onPress }) => (
+        <TouchableOpacity style={styles.filterButton} onPress={onPress}>
+            <Text style={[styles.filterButtonText, isActive && styles.filterButtonActiveText]}>{title}</Text>
+            {isActive && <View style={styles.activeFilterLine} />}
+        </TouchableOpacity>
+    );      
+
+    useEffect(() => {
+        const loadInitialTotalCompleted = async () => {
+            try {
+                const initialTotalCompleted = await AsyncStorage.getItem('totalCompleted');
+                if (initialTotalCompleted !== null) {
+                    setTotalCompleted(parseInt(initialTotalCompleted, 10));
+                }
+            } catch (e) {
+                console.error('Error loading totalCompleted:', e);
+            }
+        };
+
+        loadInitialTotalCompleted();
+    }, []);
+
+    // Completed Hours As Sum Of User Inputs
+    useFocusEffect(
+        React.useCallback(() => {
+            const loadCompletedHours = async () => {
+                try {
+                    const keys = await AsyncStorage.getAllKeys();
+                    const completedHoursArray = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@completed_hours_')));
+                    const totalCompletedHours = completedHoursArray.reduce((total, [, value]) => {
+                        return total + parseInt(value, 10);
+                    }, 0);
+
+                    setTotalCompleted(totalCompletedHours);
+                } catch (e) {
+                    console.error('Error loading total completed hours:', e);
+                }
+            };
+
+            loadCompletedHours();
+        }, [])
+    );
+    // Completed Hours As Sum Of User Inputs
 
     useFocusEffect(
         React.useCallback(() => {
@@ -21,16 +116,16 @@ const HomepageScreen = ({navigation}) => {
                     setTotalHours(parseInt(hours, 10));
                 }
                 } catch (e) {
-                // error reading value
                 }
             };
             getHours();
         }, [])
     );
+    
+    const progress = (totalCompleted / totalHours) * 100;
 
-    const progress = (completedHours / totalHours) * 100;
     return(
-        <View>
+        <ScrollView>
             <View style={styles.topBar}>
                 <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
                     <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
@@ -47,9 +142,30 @@ const HomepageScreen = ({navigation}) => {
                 <View style={[styles.progressBar, { width: `${progress}%` }]} />
             </View>
             
-            <Text style = { styles.hourText }> {completedHours}/{totalHours} Hours Completed</Text>
+            <Text style = { styles.hourText }> {totalCompleted}/{totalHours} Hours Completed</Text>
+            
+            <View style={styles.filterOptions}>
+                <FilterButton title="ALL" isActive={activeFilter === 'all'} onPress={() => handleFilterChange('all')} />
+                <FilterButton title="ONGOING" isActive={activeFilter === 'ongoing'} onPress={() => handleFilterChange('ongoing')} />
+                <FilterButton title="COMPLETED" isActive={activeFilter === 'completed'} onPress={() => handleFilterChange('completed')} />
+            </View>
+
+            {filteredTasks.length > 0 ? (
+                <ResultsList
+                    results={filteredTasks}
+                    navigation={navigation}
+                />
+            ) : (
+                <Text style={styles.noResultsText}>
+                    {activeFilter === 'ongoing' && "You don't have any ongoing volunteering now."}
+                    {activeFilter === 'completed' && "You don't have any completed volunteering now."}
+                    {activeFilter === 'all' && "You don't have any ongoing/completed volunteering yet. Go apply one!"}
+                </Text>
+            )}
+            
             <StatusBar style = "auto" />
-        </View>
+            
+        </ScrollView>
     );
 }
 
@@ -86,6 +202,14 @@ const styles = StyleSheet.create ({
         textAlign: 'center', 
         fontWeight: 'bold',
     }, 
+    subHeader: {
+        color: colors.primary,
+        fontFamily: 'PingFangSC-Semibold', 
+        fontSize: 28, 
+        marginVertical: 15,
+        textAlign: 'center', 
+        fontWeight: 'bold',
+    }, 
     text: {
         color: colors.textDark, 
         fontFamily: 'PingFangSC-Regular',
@@ -99,7 +223,7 @@ const styles = StyleSheet.create ({
         fontFamily: 'PingFangSC-Regular',
         fontSize: 15, 
         marginHorizontal: 60,
-        marginBottom: 40, 
+        marginBottom: 20, 
         marginTop: -15,
         textAlign: 'center'
     },
@@ -122,7 +246,42 @@ const styles = StyleSheet.create ({
         height: 60,
         marginTop: 60,
         marginRight: 15,
-    }
+    },
+    filterOptions: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingTop: 5, 
+
+    },
+    filterButton: {
+        flex: 1,
+        alignItems: 'center',
+        padding: 10, // Adjust as needed for padding around the text
+    },
+    filterButtonText: {
+        textAlign: 'center',
+        fontWeight: 'normal',
+        color: colors.primary,
+    },
+    filterButtonActiveText: {
+        fontWeight: 'bold',
+        color: colors.primary,
+    },
+    activeFilterLine: {
+        height: 2,
+        width: '80%', // Line will fill the width of the button
+        backgroundColor: colors.primary,
+        marginTop: 5, // Space between text and line
+        borderRadius: 5,
+    },
+    noResultsText: {
+        width: '80%',
+        textAlign: 'center',
+        alignSelf: 'center',
+        marginTop: 15,
+        fontSize: 16,
+    },
 })
 
 export default HomepageScreen;

@@ -14,8 +14,8 @@ const ResultsList = ({ title, results, navigation }) => {
         data={results}
         keyExtractor={(result) => result.id.toString()}
         renderItem={({ item }) => {
-          const city = item.location ? item.location.city : 'Unknown City';
-          const hoursDisplay = item.hours ? `${item.hours} hours` : 'Unlimited';
+          const city = item.city || (item.location && item.location.city) || 'Unknown City';
+          const hoursDisplay = item.hours ? `${item.hours}` : 'Unlimited';
 
 
           return (
