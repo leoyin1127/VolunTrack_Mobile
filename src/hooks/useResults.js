@@ -7,11 +7,11 @@ export default () => {
   const [results, setResults] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const searchApi = async searchTerm => {
+  const searchApi = async (searchTerm) => {
+    setErrorMessage(''); // Clear previous errors
     try {
-      // Initialize Firebase and Firestore
       const db = getFirestore(app);
-
+      
       // Firestore query
       const resultsCol = collection(db, 'Volunteer');
       const firestoreSnapshot = await getDocs(resultsCol);
@@ -41,7 +41,7 @@ export default () => {
       setResults(combinedResults);
     } catch (error) {
       console.error('Error during search:', error);
-      setErrorMessage('Something went wrong...');
+      setErrorMessage('Something went wrong...'); // Set error message only after a failure
     }
   };
 
