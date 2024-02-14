@@ -2,7 +2,7 @@
   "expo": {
     "name": "VolunTrack",
     "slug": "voluntrack",
-    "version": "2.0.1",
+    "version": "2.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -20,7 +20,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.leoyin.voluntrack",
-      "buildNumber": "5"
+      "buildNumber": "8"
     },
     "android": {
       "package": "com.leoyin.voluntrack",
@@ -33,6 +33,10 @@
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "extra": {}
+    "extra": {
+      "eas": {
+        "projectId": "00ab2240-c3a4-4974-87cf-2d41f65b9b0e"
+      }
+    }
   }
 }

@@ -11,7 +11,7 @@ export default () => {
     setErrorMessage(''); // Clear previous errors
     try {
       const db = getFirestore(app);
-      
+
       // Firestore query
       const resultsCol = collection(db, 'Volunteer');
       const firestoreSnapshot = await getDocs(resultsCol);
@@ -28,7 +28,7 @@ export default () => {
           term: searchTerm + ' volunteer',
           categories: 'Volunteer',
           sort_by: 'best_match',
-          limit: 20
+          limit: 50
         }
       });
       const yelpData = yelpResponse.data.businesses.map(business => ({
