@@ -13,7 +13,8 @@ import AboutUsScreen from './AboutUsScreen';
 
 
 const HomepageScreen = ({route, navigation}) => {
-    
+    const [searchTerm, setSearchTerm] = useState('');
+
     const [totalCompleted, setTotalCompleted] = useState(0); 
     const [totalHours, setTotalHours] = useState(100); 
 
@@ -53,15 +54,28 @@ const HomepageScreen = ({route, navigation}) => {
     
     const handleFilterChange = (newFilter, allTasks = tasks) => {
         setActiveFilter(newFilter);
-        setFilter(newFilter); // Update the filter state
-        const filtered = (allTasks || tasks).filter(task => {
-            if (newFilter === 'all') return task.status === 'Ongoing' || task.status === 'Completed';
-            if (newFilter === 'ongoing') return task.status === 'Ongoing';
-            if (newFilter === 'completed') return task.status === 'Completed';
-            return false;
-        });
-        setFilteredTasks(filtered); // Update the filtered tasks state
-    };    
+        let filtered = allTasks;
+        
+        if (newFilter === 'all') {
+            filtered = filtered.filter(task => task.status === 'Ongoing' || task.status === 'Completed');
+        }
+        else if (newFilter === 'ongoing') {
+            filtered = filtered.filter(task => task.status === 'Ongoing');
+        } else if (newFilter === 'completed') {
+            filtered = filtered.filter(task => task.status === 'Completed');
+        }
+        // Filter by search term if it's not empty
+        if (searchTerm) {
+            filtered = filtered.filter(task =>
+                task.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        setFilteredTasks(filtered);
+    };  
+
+    useEffect(() => {
+        handleFilterChange(activeFilter);
+    }, [searchTerm]);
 
     const FilterButton = ({ title, isActive, onPress }) => (
         <TouchableOpacity style={styles.filterButton} onPress={onPress}>
@@ -136,7 +150,11 @@ const HomepageScreen = ({route, navigation}) => {
             </View>
             <Text style = { styles.header }>VolunTrack</Text>
             <Text style = { styles.text }>Track your volunteering hours and explore new volunteering opportunities!</Text>
-            <HomepageSearchBar/>
+            <HomepageSearchBar
+                term={searchTerm}
+                onTermChange={setSearchTerm}
+                onTermSubmit={() => handleFilterChange(activeFilter)}
+            />
 
             <View style={styles.progressBarContainer}>
                 <View style={[styles.progressBar, { width: `${progress}%` }]} />
