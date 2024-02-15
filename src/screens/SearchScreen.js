@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
@@ -19,20 +19,24 @@ const SearchScreen = ({ navigation }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const [isFocused, setIsFocused] = useState(false);
+    const initialLoadRef = useRef(true); // Ref to track the initial load
+
     useFocusEffect(
         useCallback(() => {
+        if (initialLoadRef.current) {
             const performSearch = async () => {
-                setIsLoading(true); // Start loading
-                await searchApi('volunteer', selectedCity); // Perform the search with the default term
-                setIsLoading(false); // End loading
+            setIsLoading(true); // Start loading
+            await searchApi('volunteer', selectedCity); // Perform the search with the default term
+            setIsLoading(false); // End loading
             };
-        
+
             performSearch();
+            initialLoadRef.current = false; // Set to false after initial load
+        }
         }, [selectedCity]) // Dependency on selectedCity if you want to filter by city as well
     );
     
     
-
     const toggleCityList = () => {
         setShowCityList(!showCityList); // Toggle visibility of city list
     };
@@ -191,11 +195,11 @@ const SearchScreen = ({ navigation }) => {
             ) : (
                 <ResultsList results={filteredResults} navigation={navigation} />
             )}
-            {filteredResults.length === 0 && (selectedCity || term) && (
+            {!isLoading && filteredResults.length === 0 && (selectedCity || term) && (
                 <Text style={staticStyles.noResultsMessage}>
-                    {selectedCity && !term ? 'No results found for the selected city' : null}
-                    {term && !selectedCity ? 'No results found for the search term' : null}
-                    {term && selectedCity ? 'No results found for the selected city and search term' : null}
+                    {selectedCity && !term ? 'No results found for the selected city.' : null}
+                    {term && !selectedCity ? 'No results found for the search term.' : null}
+                    {term && selectedCity ? 'No results found for the selected city and search term.' : null}
                 </Text>
             )}
 
