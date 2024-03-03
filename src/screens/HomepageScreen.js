@@ -33,7 +33,7 @@ const HomepageScreen = ({route, navigation}) => {
         } catch (error) {
             console.error('Error fetching tasks:', error);
         }
-    };    
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -51,19 +51,24 @@ const HomepageScreen = ({route, navigation}) => {
             fetchTasks(); // handleFilterChange is called within fetchTasks
         }, [])
     );
-    
-    const handleFilterChange = (newFilter, allTasks = tasks) => {
+
+    const handleFilterChange = async (newFilter, allTasks = tasks) => {
         setActiveFilter(newFilter);
         let filtered = allTasks;
         
         if (newFilter === 'all') {
             filtered = filtered.filter(task => task.status === 'Ongoing' || task.status === 'Completed');
         }
+
         else if (newFilter === 'ongoing') {
             filtered = filtered.filter(task => task.status === 'Ongoing');
         } else if (newFilter === 'completed') {
             filtered = filtered.filter(task => task.status === 'Completed');
+        } else if (newFilter === 'bookmarked') {
+            const bookmarks = JSON.parse(await AsyncStorage.getItem('@bookmarks')) || [];
+            filtered = [...bookmarks];
         }
+
         // Filter by search term if it's not empty
         if (searchTerm) {
             filtered = filtered.filter(task =>
@@ -82,7 +87,7 @@ const HomepageScreen = ({route, navigation}) => {
             <Text style={[styles.filterButtonText, isActive && styles.filterButtonActiveText]}>{title}</Text>
             {isActive && <View style={styles.activeFilterLine} />}
         </TouchableOpacity>
-    );      
+    );
 
     useEffect(() => {
         const loadInitialTotalCompleted = async () => {
@@ -165,7 +170,8 @@ const HomepageScreen = ({route, navigation}) => {
             <View style={styles.filterOptions}>
                 <FilterButton title="ALL" isActive={activeFilter === 'all'} onPress={() => handleFilterChange('all')} />
                 <FilterButton title="ONGOING" isActive={activeFilter === 'ongoing'} onPress={() => handleFilterChange('ongoing')} />
-                <FilterButton title="COMPLETED" isActive={activeFilter === 'completed'} onPress={() => handleFilterChange('completed')} />
+                <FilterButton title="COMPLETE" isActive={activeFilter === 'completed'} onPress={() => handleFilterChange('completed')} />
+                <FilterButton title = "BOOKMARK" isActive = {activeFilter === 'bookmarked'} onPress={() => handleFilterChange('bookmarked')}/>
             </View>
 
             {filteredTasks.length > 0 ? (
@@ -178,9 +184,9 @@ const HomepageScreen = ({route, navigation}) => {
                     {activeFilter === 'ongoing' && "You don't have any ongoing volunteering now."}
                     {activeFilter === 'completed' && "You don't have any completed volunteering now."}
                     {activeFilter === 'all' && "You don't have any ongoing/completed volunteering yet. Go apply one!"}
+                    {activeFilter === 'bookmarked' && "You don't have any bookmarked volunteering yet."}
                 </Text>
             )}
-            
             <StatusBar style = "auto" />
             
         </ScrollView>
@@ -270,7 +276,6 @@ const styles = StyleSheet.create ({
         justifyContent: 'space-around',
         alignItems: 'center',
         paddingTop: 5, 
-
     },
     filterButton: {
         flex: 1,
