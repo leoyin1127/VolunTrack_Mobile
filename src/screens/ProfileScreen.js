@@ -249,7 +249,16 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.statLabel}>Group</Text>
           </View>
         </View>
-        <Button title={'UserInfo'} onPress={navigation.navigate('UserInfoScreen')}/>
+        {/* <TouchableOpacity onPress={() => navigation.navigate('UserInfoScreen')}>
+          <Text>
+            UserInfo
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('SignInScreen')}>
+          <Text>
+            sign in
+          </Text>
+        </TouchableOpacity> */}
       </View>
     </SafeAreaView>
   );

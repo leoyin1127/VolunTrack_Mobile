@@ -1,8 +1,10 @@
-// Importing environment variables
+// Importing Firebase utilities
 import { initializeApp } from 'firebase/app';
-import { getAuth} from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
+// Import environment variables from .env file
 import {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
@@ -14,6 +16,7 @@ import {
   FIREBASE_DATABASE_URL
 } from '@env';
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
   authDomain: FIREBASE_AUTH_DOMAIN,
@@ -27,7 +30,14 @@ const firebaseConfig = {
 
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app); 
 
+// Initialize Firebase Auth with persistence
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+
+// Initialize Firestore
+export const db = getFirestore(app);
+
+// Export the Firebase app instance
 export { app };

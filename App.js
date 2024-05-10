@@ -19,6 +19,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import SignInScreen from './src/screens/SignInScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import UserInfoScreen from './src/screens/UserInfoScreen';
+import UserInterestsScreen from './src/screens/UserInterestsScreen';
 
 import colors from './assets/colors/colors';
 
@@ -173,7 +174,15 @@ export default function App() {
               component={UserInfoScreen}
               options={{
                 headerShown: true,
-                title: 'User Info'
+                title: 'Set up your profile'
+              }}
+            />
+            <RootStack.Screen
+              name="UserInterestsScreen"
+              component={UserInterestsScreen}
+              options={{
+                headerShown: true,
+                title: 'Interests'
               }}
             />
           </RootStack.Navigator>
