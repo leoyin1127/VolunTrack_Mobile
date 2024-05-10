@@ -1,3 +1,4 @@
+//App.js
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -12,9 +13,13 @@ import IndividualMailScreen from './src/screens/IndividualMailScreen';
 import MailScreen from './src/screens/MailScreen'; 
 import SearchScreen from './src/screens/SearchScreen'; 
 import VolunteeringScreen from './src/screens/VolunteeringScreen'; 
-import SettingScreen from './src/screens/SettingScreen'; 
+import ProfileSettingScreen from './src/screens/ProfileSettingScreen'; 
+import HomepageSettingScreen from './src/screens/HomepageSettingScreen'; 
+import ProfileScreen from './src/screens/ProfileScreen';
+import SignInScreen from './src/screens/SignInScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
+import UserInfoScreen from './src/screens/UserInfoScreen';
 
-// Import colors and vector icons
 import colors from './assets/colors/colors';
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -62,8 +67,8 @@ const TabNavigator = () => {
             case 'Mail':
               icon = focused ? require('./assets/icons/email.png') : require('./assets/icons/email.png');
               break;
-            case 'Bookmarked':
-              icon = focused ? require('./assets/icons/bookmark.png') : require('./assets/icons/bookmark.png');
+            case 'Profile':
+              icon = focused ? require('./assets/icons/profile.png') : require('./assets/icons/profile.png');
               break;
           }
           return <Image source={icon} style={{ width: size, height: size, tintColor: color }} />;
@@ -73,7 +78,7 @@ const TabNavigator = () => {
       <Tab.Screen name='Homepage' component={HomepageScreen} />
       <Tab.Screen name='Search' component={SearchScreen} />
       <Tab.Screen name="Mail" component={MailStackScreen} />
-      <Tab.Screen name='Bookmarked' component={BookmarkedScreen} />
+      <Tab.Screen name='Profile' component={ProfileScreen} />
     </Tab.Navigator>
   );
 };
@@ -108,42 +113,74 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {hasCompletedOnboarding ? (
-        <RootStack.Navigator>
-          <RootStack.Screen
-            name="Main"
-            component={TabNavigator}
-            options={{ headerShown: false }}
-          />
-          <RootStack.Screen
-            name="AboutUsScreen"
-            component={AboutUsScreen}
-            options={{ 
-              headerShown: true,
-              title: 'About Us'
-            }}
-          />
-          <RootStack.Screen
-            name="VolunteeringScreen"
-            component={VolunteeringScreen}
-            options={{
-              headerShown: true,
-              title: 'Volunteering Details'
-            }}
-          />
-          <RootStack.Screen
-            name="SettingScreen"
-            component={SettingScreen}
-            options={{
-              headerShown: true,
-              title: 'Setting'
-            }}
-          />
-        </RootStack.Navigator>
-      ) : (
-        <OnboardingScreen onFinished={handleFinishedOnboarding} />
-      )}
-    </NavigationContainer>
+        {hasCompletedOnboarding ? (
+          <RootStack.Navigator>
+            <RootStack.Screen
+              name="Main"
+              component={TabNavigator}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="AboutUsScreen"
+              component={AboutUsScreen}
+              options={{ 
+                headerShown: true,
+                title: 'About Us'
+              }}
+            />
+            <RootStack.Screen
+              name="VolunteeringScreen"
+              component={VolunteeringScreen}
+              options={{
+                headerShown: true,
+                title: 'Volunteering Details'
+              }}
+            />
+            <RootStack.Screen
+              name="HomepageSettingScreen"
+              component={HomepageSettingScreen}
+              options={{
+                headerShown: true,
+                title: 'HomepageSetting'
+              }}
+            />
+            <RootStack.Screen
+              name="ProfileSettingScreen"
+              component={ProfileSettingScreen}
+              options={{
+                headerShown: true,
+                title: 'ProfileSetting'
+              }}
+            />
+            <RootStack.Screen
+              name="SignInScreen"
+              component={SignInScreen}
+              options={{
+                headerShown: true,
+                title: 'Sign In'
+              }}
+            />
+            <RootStack.Screen
+              name="SignUpScreen"
+              component={SignUpScreen}
+              options={{
+                headerShown: true,
+                title: 'Sign Up'
+              }}
+            />
+            <RootStack.Screen
+              name="UserInfoScreen"
+              component={UserInfoScreen}
+              options={{
+                headerShown: true,
+                title: 'User Info'
+              }}
+            />
+          </RootStack.Navigator>
+        ) : (
+          <OnboardingScreen onFinished={handleFinishedOnboarding} />
+        )}
+      </NavigationContainer>
   );
 };
 

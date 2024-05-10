@@ -23,23 +23,23 @@ const ResultsList = ({ title, results, navigation }) => {
               style={styles.resultItem}
               onPress={() => navigation.navigate('VolunteeringScreen', { itemData: item })}
             >
-            <ImageBackground 
-              source={{ uri: item.image_url }}
-              style={styles.backgroundImage}
-            >
-              {/* Semi-transparent background covering the entire image */}
-              <View style={styles.textContainer}>
-                {/* Positioned at the top left */}
-                <Text style={styles.hours}>{hoursDisplay} hours</Text>
+              <ImageBackground 
+                source={{ uri: item.image_url }}
+                style={styles.backgroundImage}
+              >
+                {/* Semi-transparent background covering the entire image */}
+                <View style={styles.textContainer}>
+                  {/* Positioned at the top left */}
+                  <Text style={styles.hours}>{hoursDisplay} hours</Text>
 
-                {/* Centered text */}
-                <Text style={styles.name}>{item.name}</Text>
+                  {/* Centered text */}
+                  <Text style={styles.name}>{item.name}</Text>
 
-                {/* Positioned at the bottom left */}
-                <Text style={styles.city}>{city}</Text>
-              </View>
-            </ImageBackground>
-          </TouchableOpacity>
+                  {/* Positioned at the bottom left */}
+                  <Text style={styles.city}>{city}</Text>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
           );
         }}
       />

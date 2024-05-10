@@ -140,7 +140,7 @@ const HomepageScreen = ({route, navigation}) => {
                 <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
                     <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('SettingScreen')}>
+                <TouchableOpacity onPress={() => navigation.navigate('HomepageSettingScreen')}>
                     <Image source={require('../../assets/icons/SettingIcon.png')} style={styles.SettingIcon} />
                 </TouchableOpacity>
             </View>
