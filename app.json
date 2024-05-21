@@ -18,12 +18,13 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "com.leoyin.voluntrack",
-      "buildNumber": "3"
-      
+      "buildNumber": "10"
     },
     "android": {
       "package": "com.leoyin.voluntrack",
+      "googleServicesFile": "./google-services.json",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
@@ -34,6 +35,20 @@
       "favicon": "./assets/icon.png"
     },
     "extra": {
-    }
+      "eas": {
+        "projectId": "00ab2240-c3a4-4974-87cf-2d41f65b9b0e"
+      }
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ]
   }
 }

@@ -18,7 +18,7 @@ import {
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: FIREBASE_API_KEY,
+  apiKey: FIREBASE_API_KEY || "AIzaSyACm3swv3gxxhdoOSXGn_dGO83jN7idrCA",
   authDomain: FIREBASE_AUTH_DOMAIN,
   databaseURL: FIREBASE_DATABASE_URL,
   projectId: FIREBASE_PROJECT_ID,
