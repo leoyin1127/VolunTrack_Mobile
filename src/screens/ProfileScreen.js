@@ -15,6 +15,28 @@ const ProfileScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const isMounted = useRef(true);
 
+  const firstLoad = useRef(true); // useRef to track the initial load
+
+  useFocusEffect(
+    useCallback(() => {
+      const resetStateIfNeeded = async () => {
+        const shouldReset = await AsyncStorage.getItem('resetFirstLoad');
+        if (shouldReset === 'true') {
+          firstLoad.current = true; // Reset the first load indicator
+          await AsyncStorage.removeItem('resetFirstLoad'); // Clear the flag
+        }
+  
+        if (firstLoad.current) {
+          setLoading(true);
+          getUserProfile().catch(console.error);
+          firstLoad.current = false;
+        }
+      };
+  
+      resetStateIfNeeded();
+    }, [])
+  ); 
+
   useFocusEffect(
     useCallback(() => {
         const fetchUserData = async () => {
@@ -52,16 +74,6 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem('@user_data');
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-      } catch (e) {
-        console.error('Failed to load user data', e);
-        return null;
-      }
-    };
-
     const checkUserAuthentication = async () => {
       const storedUserData = await loadUserData();
       if (storedUserData) {
@@ -117,13 +129,6 @@ const ProfileScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      getUserProfile().catch(console.error);
-    }, [])
-  );
 
   const saveUserData = async (userData) => {
     try {

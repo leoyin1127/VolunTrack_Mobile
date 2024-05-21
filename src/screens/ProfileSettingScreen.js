@@ -8,6 +8,7 @@ import colors from '../../assets/colors/colors';
 import { useFocusEffect } from '@react-navigation/native';
 
 const ProfileSettingsScreen = ({ navigation }) => {
+
   const [profileData, setProfileData] = useState({
     displayName: '',
     bio: '',
@@ -41,11 +42,11 @@ const ProfileSettingsScreen = ({ navigation }) => {
     }
   };
   
-
   const handleSignOut = async () => {
     try {
       await signOut(auth);
       await AsyncStorage.removeItem('@user_data'); // Clear stored user data
+      await AsyncStorage.setItem('resetProfileScreen', 'true'); // Set a flag when signing out
       Alert.alert('Sign Out', 'You have signed out!');
       navigation.navigate('Profile');
     } catch (error) {

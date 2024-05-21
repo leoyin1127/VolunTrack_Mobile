@@ -27,6 +27,7 @@ const SignInScreen = ({ navigation, route }) => {
           displayName: userCredential.user.displayName
         };
         await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
+        await AsyncStorage.setItem('resetFirstLoad', 'true'); // Set a flag when signing in
         const isNewUser = await AsyncStorage.getItem('isNewUser');
         if (isNewUser === 'true') {
             navigation.navigate('UserInfoScreen');
