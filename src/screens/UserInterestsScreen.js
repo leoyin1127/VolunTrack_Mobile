@@ -6,9 +6,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from '../../assets/colors/colors';
 
 const hobbiesOptions = [
-    'Sports', 'Animals', 'Environment', 'Teaching', 'Youth and Children', 'Seniors',
-    'Social Services', 'Religion and Faith', 'Fundraising', 'Communication', 'Food',
-    'Events', 'Arts', 'Culture', 'Accessibility', 
+    'Sports', 'Animals', 'Environment', 'Teaching', 'Peer Support', 'Youth', 'Seniors',
+    'Social Services', 'Religion', 'Fundraising', 'Communication', 'Food',
+    'Event Assistence', 'Arts', 'Culture', 'Accessibility' , 'Finance', 'Leadership', 'Education',
+    'Literacy', 'IT Support', 'Settlement and Newcomers', 'Recreation', 'Trades', 'Maintenance'
 ];
 
 const UserInterestsScreen = ({ route, navigation }) => {
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     },
     hobbyText: {
         textAlign: 'center',
-        fontSize: 18,
+        fontSize: 15,
         color: 'black' // Default color
     },
     hobbyTextSelected: {

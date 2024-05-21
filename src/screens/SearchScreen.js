@@ -5,7 +5,9 @@ import Autocomplete from 'react-native-autocomplete-input';
 import colors from '../../assets/colors/colors';
 import SearchSearchBar from '../components/SearchSearchBar';
 import ResultsList from '../components/ResultsList';
-import useSearchApi from '../hooks/useResults'; // Ensure this is the correct path
+import useSearchApi from '../hooks/useResults'; 
+import { auth, db } from '../api/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SearchScreen = ({ navigation }) => {
     const [term, setTerm] = useState(''); 
@@ -15,11 +17,31 @@ const SearchScreen = ({ navigation }) => {
     const [selectedCity, setSelectedCity] = useState('');
     const [searchApi, results, errorMessage] = useSearchApi();
     const [filteredResults, setFilteredResults] = useState([]);
+    const [userHobbies, setUserHobbies] = useState([]);
+    const [filterByHobbies, setFilterByHobbies] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
 
     const [isFocused, setIsFocused] = useState(false);
     const initialLoadRef = useRef(true); // Ref to track the initial load
+
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchUserData = async () => {
+                const storedUserData = await AsyncStorage.getItem('@user_data');
+                if (storedUserData) {
+                    const userData = JSON.parse(storedUserData);
+                    setCurrentUser(userData);
+                    setUserHobbies(userData.hobbies);
+                } else {
+                    // Optionally fetch from Firestore if needed or handle user not found
+                }
+            };
+            fetchUserData();
+        }, [])
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -57,24 +79,53 @@ const SearchScreen = ({ navigation }) => {
         .catch((error) => console.error('Error fetching cities:', error));
     }, []);
 
+    const normalizeString = (inputString) => {
+        return inputString.toLowerCase();
+    };
+    
+    const getCategoriesText = (categories) => {
+        if (typeof categories === 'string') {
+            return categories;  // If it's already a string, return it as is
+        } else if (Array.isArray(categories)) {
+            // If it's an array, assume it's an array of objects with a 'title' key
+            return categories.map(cat => cat.title).join(', ');
+        }
+        return '';  // Return an empty string if neither
+    };
+    
     useEffect(() => {
         let cityResults = results;
     
         if (selectedCity) {
             cityResults = cityResults.filter(
-                (result) => (result.location && result.location.city === selectedCity) || (result.city === selectedCity)
+                result => (result.location && result.location.city === selectedCity) || (result.city === selectedCity)
             );
         }
     
         if (term) {
+            const lowerCaseTerm = normalizeString(term);
             cityResults = cityResults.filter(
-                (result) => result.name.toLowerCase().includes(term.toLowerCase())
+                result => {
+                    const name = normalizeString(result.name);
+                    const location = result.location ? normalizeString(result.location.city) : '';
+                    const city = normalizeString(result.city);
+                    return name.includes(lowerCaseTerm) || location.includes(lowerCaseTerm) || city.includes(lowerCaseTerm);
+                }
             );
         }
     
+        if (userHobbies.length > 0 && filterByHobbies) {
+            cityResults = cityResults.filter(result => {
+                const categoriesText = getCategoriesText(result.categories);
+                const normalizedCategories = normalizeString(categoriesText);
+                return userHobbies.some(hobby => normalizedCategories.includes(normalizeString(hobby)));
+            });
+        }
+    
         setFilteredResults(cityResults);
-    }, [selectedCity, term, results]);
-
+    }, [selectedCity, term, results, userHobbies, filterByHobbies]);
+    
+    
     const handleCitySearch = (query) => {
         setSelectedCity(query);
         if (query === '') {
@@ -133,6 +184,52 @@ const SearchScreen = ({ navigation }) => {
             height: 20,
             marginRight: 10,
         },
+        toggleContainer: {
+            flexDirection: 'row',
+            justifyContent: 'center',
+            paddingVertical: 10,
+        },
+        toggleButton: {
+            backgroundColor: colors.lightGray, // Assume colors.lightGray is defined
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 10,
+        },
+        toggleButtonActive: {
+            backgroundColor: colors.primary,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 10,
+        },
+        toggleButtonText: {
+            color: 'black',
+            fontWeight: 'bold',
+        },
+        checkboxContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'center',
+            marginTop: 10,
+            padding: 10,
+            backgroundColor: 'white', // Optional: depends on your app's theme
+        },
+        checkbox: {
+            width: 24,
+            height: 24,
+            marginRight: 10,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 4,
+        },
+        checkboxActive: {
+            backgroundColor: colors.primary,
+        },
+        checkboxLabel: {
+            fontSize: 16,
+            color: '#000',
+        },
     });
 
   return (
@@ -142,12 +239,16 @@ const SearchScreen = ({ navigation }) => {
                 <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
                     <Image source={require('../../assets/adaptive-icon-cropped.png')} style={staticStyles.icon} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('SettingScreen')}>
-                    <Image source={require('../../assets/icons/SettingIcon.png')} style={staticStyles.icon} />
-                </TouchableOpacity>
+                
             </View>
             
             <Text style={staticStyles.header}>Volunteer Opportunities</Text>
+
+            {/* <View style={{marginLeft: 240}}>
+                <Image source={require('../../assets/adaptive-icon-cropped.png')} style={{width: 180,
+        height: 180,}}/>
+
+            </View> */}
             
             <View style={dynamicStyles.inputContainer}>
                 <SearchSearchBar
@@ -164,30 +265,43 @@ const SearchScreen = ({ navigation }) => {
                 </TouchableOpacity>
             </View>   
             {showCityList && (
-                <Autocomplete
-                data={autocompleteData}
-                defaultValue={selectedCity}
-                onChangeText={handleCitySearch}
-                placeholder="City/Location"
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                style={dynamicStyles.input}
-                containerStyle={dynamicStyles.container} // Set the style for the container
-                listStyle={dynamicStyles.listStyle} // Set the style for the list part
-                flatListProps={{
-                    keyExtractor: (item, index) => `item-${index}`,
-                    renderItem: ({ item }) => (
+                <>
+                    <Autocomplete
+                        data={autocompleteData}
+                        defaultValue={selectedCity}
+                        onChangeText={handleCitySearch}
+                        placeholder="City/Location"
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        style={dynamicStyles.input}
+                        containerStyle={dynamicStyles.container}
+                        listStyle={dynamicStyles.listStyle}
+                        flatListProps={{
+                            keyExtractor: (item, index) => `item-${index}`,
+                            renderItem: ({ item }) => (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setSelectedCity(item.value);
+                                        setAutocompleteData([]); // Hide the list after selection
+                                    }}
+                                >
+                                    <Text style={dynamicStyles.itemText}>{item.label}</Text>
+                                </TouchableOpacity>
+                            ),
+                        }}
+                    />
+                    <View style={dynamicStyles.checkboxContainer}>
                         <TouchableOpacity
-                            onPress={() => {
-                                setSelectedCity(item.value);
-                                setAutocompleteData([]); // Hide the list after selection
-                            }}
+                            style={[dynamicStyles.checkbox, filterByHobbies ? dynamicStyles.checkboxActive : null]}
+                            onPress={() => setFilterByHobbies(!filterByHobbies)}
                         >
-                            <Text style={dynamicStyles.itemText}>{item.label}</Text>
+                            {filterByHobbies && <Text style={{ color: 'white' }}>✓</Text>}
                         </TouchableOpacity>
-                    ),
-                }}
-            />
+                        <Text style={dynamicStyles.checkboxLabel}>
+                            {filterByHobbies ? 'Hobby Filter Enabled' : 'Enable Hobby Filter'}
+                        </Text>
+                    </View>
+                </>
             )}
             
             {isLoading ? (

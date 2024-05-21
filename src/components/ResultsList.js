@@ -6,6 +6,14 @@ const ResultsList = ({ title, results, navigation }) => {
     return null;
   }
 
+  const getImageSource = (imageUrl) => {
+    if (imageUrl && (imageUrl.endsWith('.png') || imageUrl.endsWith('.jpg'))) {
+      return { uri: imageUrl };
+    } else {
+      return require('../../assets/icons/volunteer.png');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -16,7 +24,7 @@ const ResultsList = ({ title, results, navigation }) => {
         renderItem={({ item }) => {
           const city = item.city || (item.location && item.location.city) || 'Unknown City';
           const hoursDisplay = item.hours ? `${item.hours}` : 'Unlimited';
-
+          const imageSrc = getImageSource(item.image_url);
 
           return (
             <TouchableOpacity 
@@ -24,7 +32,7 @@ const ResultsList = ({ title, results, navigation }) => {
               onPress={() => navigation.navigate('VolunteeringScreen', { itemData: item })}
             >
               <ImageBackground 
-                source={{ uri: item.image_url }}
+                source={imageSrc}
                 style={styles.backgroundImage}
               >
                 {/* Semi-transparent background covering the entire image */}

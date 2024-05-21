@@ -15,6 +15,7 @@ const DetailItem = ({ icon, text }) => (
     </View>
 );
 
+
 const isValidUrl = (urlString) => {
     const regex = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/;
     return regex.test(urlString);
@@ -261,10 +262,14 @@ const VolunteeringScreen = ({ route, navigation }) => {
         fullAddress = [address1, city, state, zipCode, country].filter(Boolean).join(', ');
     }
 
-    const coordinates = itemData.coordinates;
-    const formattedLatitude = coordinates && !isNaN(coordinates.latitude) ? parseFloat(coordinates.latitude) : null;
-    const formattedLongitude = coordinates && !isNaN(coordinates.longitude) ? parseFloat(coordinates.longitude) : null;
-
+    const getValidCoordinate = (coord) => {
+        const num = parseFloat(coord);
+        return !isNaN(num) ? num : null;
+    };
+    
+    const formattedLatitude = getValidCoordinate(itemData.coordinates?.latitude || itemData.latitude);
+    const formattedLongitude = getValidCoordinate(itemData.coordinates?.longitude || itemData.longitude);
+    
     const isValidCoordinates = () => {
         return formattedLatitude !== null && formattedLongitude !== null &&
                formattedLatitude >= -90 && formattedLatitude <= 90 &&

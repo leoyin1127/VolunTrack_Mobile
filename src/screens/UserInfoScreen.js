@@ -5,9 +5,10 @@ import colors from '../../assets/colors/colors';
 
 const UserDetailsScreen = ({ navigation }) => {
     const [userInfo, setUserInfo] = useState({
-        username: '',
+        displayName: '',
         email: '',
-        city: ''
+        city: '',
+        bio: '',
     });
 
     const updateUserStatus = async () => {
@@ -28,7 +29,7 @@ const UserDetailsScreen = ({ navigation }) => {
             <Text style={styles.title}>Welcome, new user!</Text>
             <Text style={styles.instructions}>Quick steps for people to get to know you...</Text>
 
-            <Text style={styles.inputHeader}>Username</Text>
+            <Text style={styles.inputHeader}>User Name</Text>
             <View style={styles.inputField}>
                 <TextInput
                     placeholder='How people can call you'
