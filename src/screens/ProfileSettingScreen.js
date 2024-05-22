@@ -12,6 +12,7 @@ const ProfileSettingsScreen = ({ navigation }) => {
   const [profileData, setProfileData] = useState({
     displayName: '',
     bio: '',
+    hobbies: [],
   });
 
   useFocusEffect(
@@ -26,6 +27,10 @@ const ProfileSettingsScreen = ({ navigation }) => {
       fetchUserData();
     }, [])
   );
+
+  const navigateToInterests = () => {
+    navigation.navigate('UserInterestsScreen', { userInfo: profileData, currentInterests: profileData.hobbies || [] });
+  };
 
   const saveProfileData = async () => {
     const userId = auth.currentUser.uid;
@@ -48,7 +53,7 @@ const ProfileSettingsScreen = ({ navigation }) => {
       await AsyncStorage.removeItem('@user_data'); // Clear stored user data
       await AsyncStorage.setItem('resetProfileScreen', 'true'); // Set a flag when signing out
       Alert.alert('Sign Out', 'You have signed out!');
-      navigation.navigate('Profile');
+      navigation.navigate('SignInScreen');
     } catch (error) {
       console.error('Error signing out:', error);
       Alert.alert('Error', 'Failed to sign out.');
@@ -74,6 +79,9 @@ const ProfileSettingsScreen = ({ navigation }) => {
         value={profileData.bio}
         onChangeText={(text) => setProfileData({ ...profileData, bio: text })}
       />
+      <TouchableOpacity style={styles.button} onPress={navigateToInterests}>
+        <Text style={styles.buttonText}>Edit Interests</Text>
+      </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={saveProfileData}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>

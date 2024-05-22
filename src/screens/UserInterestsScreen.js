@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Button, StyleSheet, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { db, auth } from '../api/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
@@ -8,41 +8,44 @@ import colors from '../../assets/colors/colors';
 const hobbiesOptions = [
     'Sports', 'Animals', 'Environment', 'Teaching', 'Peer Support', 'Youth', 'Seniors',
     'Social Services', 'Religion', 'Fundraising', 'Communication', 'Food',
-    'Event Assistence', 'Arts', 'Culture', 'Accessibility' , 'Finance', 'Leadership', 'Education',
+    'Event Assistance', 'Arts', 'Culture', 'Accessibility' , 'Finance', 'Leadership', 'Education',
     'Literacy', 'IT Support', 'Settlement and Newcomers', 'Recreation', 'Trades', 'Maintenance'
 ];
 
 const UserInterestsScreen = ({ route, navigation }) => {
     const { userInfo } = route.params;
-    const [selectedHobbies, setSelectedHobbies] = useState([]);
+    const [selectedHobbies, setSelectedHobbies] = useState(userInfo.hobbies || []);
 
-    const updateUserStatus = async () => {
-        await AsyncStorage.setItem('isNewUser', 'false');
-    };
+    useEffect(() => {
+        // Optionally, load selected hobbies from AsyncStorage or an initial state
+        const loadSelectedHobbies = async () => {
+            const hobbies = await AsyncStorage.getItem('selectedHobbies');
+            if (hobbies) {
+                setSelectedHobbies(JSON.parse(hobbies));
+            }
+        };
+
+        loadSelectedHobbies();
+    }, []);
 
     const handleSave = async () => {
         if (!auth.currentUser) {
             Alert.alert("Error", "No user is currently logged in.");
-            return; // Stop execution if no user is logged in
+            return;
         }
-    
+
         const { uid } = auth.currentUser;
         const userRef = doc(db, 'users', uid);
-    
+
         try {
             await setDoc(userRef, { ...userInfo, hobbies: selectedHobbies }, { merge: true });
-            await AsyncStorage.setItem('isNewUser', 'false');
+            await AsyncStorage.setItem('selectedHobbies', JSON.stringify(selectedHobbies));
             Alert.alert("Success", "Profile Updated Successfully");
-            navigation.navigate('Homepage');
+            navigation.navigate('Profile');
         } catch (error) {
             console.error("Error updating user info:", error);
             Alert.alert("Error", "Failed to update profile");
         }
-    };
-
-    const handleSkip = async () => {
-        await updateUserStatus();
-        navigation.navigate('Homepage');
     };
 
     const handleToggleHobby = (hobby) => {
@@ -75,9 +78,6 @@ const UserInterestsScreen = ({ route, navigation }) => {
             </View>
             <TouchableOpacity style={styles.button} onPress={handleSave}>
                 <Text style={styles.buttonText}>Save your profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-                <Text style={styles.skipButtonText}>Skip</Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -150,6 +150,12 @@ const styles = StyleSheet.create({
     skipButtonText: {
         color: '#ffffff',
         fontSize: 18,
+    },
+    hobbySelected: {
+        backgroundColor: '#007bff',
+    },
+    hobbyTextSelected: {
+        color: 'white' // Color when selected
     },
 });
 

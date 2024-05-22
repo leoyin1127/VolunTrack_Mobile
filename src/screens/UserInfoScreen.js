@@ -9,6 +9,7 @@ const UserDetailsScreen = ({ navigation }) => {
         email: '',
         city: '',
         bio: '',
+        birthday: '',
     });
 
     const updateUserStatus = async () => {
@@ -36,6 +37,16 @@ const UserDetailsScreen = ({ navigation }) => {
                     style={styles.input}
                     value={userInfo.displayName}
                     onChangeText={text => setUserInfo({ ...userInfo, displayName: text })}
+                />
+            </View>
+
+            <Text style={styles.inputHeader}>Birthday</Text>
+            <View style={styles.inputField}>
+                <TextInput
+                    placeholder='What is your birthday'
+                    style={styles.input}
+                    value={userInfo.email}
+                    onChangeText={text => setUserInfo({ ...userInfo, birthday: text })}
                 />
             </View>
 
