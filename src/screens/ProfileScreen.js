@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, Button, Image, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { auth, db } from '../api/firebaseConfig';
 import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,10 +12,16 @@ import colors from '../../assets/colors/colors';
 
 const ProfileScreen = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const isMounted = useRef(true);
 
   const firstLoad = useRef(true); // useRef to track the initial load
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchUserData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -28,7 +34,7 @@ const ProfileScreen = ({ navigation }) => {
   
         if (firstLoad.current) {
           setLoading(true);
-          getUserProfile().catch(console.error);
+          fetchUserData();
           firstLoad.current = false;
         }
       };
@@ -37,20 +43,27 @@ const ProfileScreen = ({ navigation }) => {
     }, [])
   ); 
 
-  useFocusEffect(
-    useCallback(() => {
-        const fetchUserData = async () => {
-            const storedUserData = await AsyncStorage.getItem('@user_data');
-            if (storedUserData) {
-                const userData = JSON.parse(storedUserData);
-                setCurrentUser(userData);
-            } else {
-                // Optionally fetch from Firestore if needed or handle user not found
-            }
-        };
-        fetchUserData();
-    }, [])
-);
+  const fetchUserData = async () => {
+    try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        const jsonValue = await AsyncStorage.getItem('@user_data');
+        const userData = jsonValue != null ? JSON.parse(jsonValue) : null;
+
+        console.log(jsonValue)
+
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setCurrentUser(userData);
+            await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
+        } else {
+            console.log("No user data available");
+        }
+    } catch (error) {
+        console.error("Failed to fetch user data:", error);
+    }
+    setRefreshing(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -109,23 +122,6 @@ const ProfileScreen = ({ navigation }) => {
       console.error('Error signing out: ', error);
       alert('Failed to sign out.');
     } finally {
-      setLoading(false);
-    }
-  };
-  
-
-  const getUserProfile = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists() && isMounted.current) {
-        const userData = userDoc.data();
-        setCurrentUser(userData);
-        await saveUserData(userData);
-      }
-    }
-    if (isMounted.current) {
       setLoading(false);
     }
   };
@@ -199,7 +195,7 @@ const ProfileScreen = ({ navigation }) => {
 
   if (!currentUser) {
     return (
-      <View style={styles.container}>
+      <View style={styles.before}>
         <Image
           source={require('../../assets/images/profileImage.png')}
           style={styles.illustration}
@@ -217,64 +213,72 @@ const ProfileScreen = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
-          <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ProfileSettingScreen')}>
-          <Image source={require('../../assets/icons/SettingIcon.png')} style={styles.icon} />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.profileContainer}>
-        <Image
-          source={require('../../assets/icons/defaultUserImage.png') }  
-          style={styles.profileImage}
+    <ScrollView
+      style={styles.scrollView}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}          
         />
-        <Text style={styles.profileName}>{currentUser.displayName || 'Someone Awesome'}</Text>
-
-        <Text style={styles.bio}>{currentUser.bio || 'This person is lazy, left no description..'}</Text>
+      }
+    >
+      <View style={styles.container}>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
+            <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('ProfileSettingScreen')}>
+            <Image source={require('../../assets/icons/SettingIcon.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
         
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{currentUser.volunteered || 0}</Text>
-            <Text style={styles.statLabel}>Volunteered</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{currentUser.facilitated || 0}</Text>
-            <Text style={styles.statLabel}>Facilitated</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{currentUser.events || 0}</Text>
-            <Text style={styles.statLabel}>Events</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{currentUser.group || 0}</Text>
-            <Text style={styles.statLabel}>Group</Text>
+        <View style={styles.profileContainer}>
+          <Image
+            source={require('../../assets/icons/defaultUserImage.png') }  
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>{currentUser.displayName || 'Someone Awesome'}</Text>
+
+          <Text style={styles.bio}>{currentUser.bio || 'This person is lazy, left no description..'}</Text>
+          
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{currentUser.volunteered || 0}</Text>
+              <Text style={styles.statLabel}>Volunteered</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{currentUser.facilitated || 0}</Text>
+              <Text style={styles.statLabel}>Facilitated</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{currentUser.events || 0}</Text>
+              <Text style={styles.statLabel}>Events</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{currentUser.group || 0}</Text>
+              <Text style={styles.statLabel}>Group</Text>
+            </View>
           </View>
         </View>
-        {/* <TouchableOpacity onPress={() => navigation.navigate('UserInfoScreen')}>
-          <Text>
-            UserInfo
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('SignInScreen')}>
-          <Text>
-            sign in
-          </Text>
-        </TouchableOpacity> */}
       </View>
-    </SafeAreaView>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  before:{
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffffff',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+      paddingTop: 60,
+      paddingHorizontal: 15,
   },
   topBar: {
     flexDirection: 'row',
@@ -313,6 +317,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginBottom: 15,
     alignItems: 'center',
+    alignSelf: 'center',
   },
   signUpButton: {
     backgroundColor: colors.primary,

@@ -20,6 +20,7 @@ import SignInScreen from './src/screens/SignInScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import UserInfoScreen from './src/screens/UserInfoScreen';
 import UserInterestsScreen from './src/screens/UserInterestsScreen';
+import EditInterestScreen from './src/screens/EditInterestScreen';
 
 import colors from './assets/colors/colors';
 
@@ -183,6 +184,14 @@ export default function App() {
               options={{
                 headerShown: true,
                 title: 'Interests'
+              }}
+            />
+            <RootStack.Screen
+              name="EditInterestScreen"
+              component={EditInterestScreen}
+              options={{
+                headerShown: true,
+                title: 'Edit your interests'
               }}
             />
           </RootStack.Navigator>

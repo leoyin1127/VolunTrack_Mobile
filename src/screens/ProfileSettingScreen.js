@@ -1,11 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert, TouchableOpacity } from 'react-native';
 import { auth, db } from '../api/firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from '../../assets/colors/colors';
-import { useFocusEffect } from '@react-navigation/native';
 
 const ProfileSettingsScreen = ({ navigation }) => {
 
@@ -15,35 +14,28 @@ const ProfileSettingsScreen = ({ navigation }) => {
     hobbies: [],
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchUserData = async () => {
-        const storedUserData = await AsyncStorage.getItem('@user_data');
-        if (storedUserData) {
-          const userData = JSON.parse(storedUserData);
-          setProfileData(userData);
-        }
-      };
-      fetchUserData();
-    }, [])
-  );
+  useEffect(() => {
+    const loadProfileData = async () => {
+      const data = await AsyncStorage.getItem('@user_data');
+      if (data) setProfileData(JSON.parse(data));
+    };
+    loadProfileData();
+  }, []);
 
   const navigateToInterests = () => {
-    navigation.navigate('UserInterestsScreen', { userInfo: profileData, currentInterests: profileData.hobbies || [] });
+    navigation.navigate('EditInterestScreen', { userInfo: profileData, currentInterests: profileData.hobbies || [] });
   };
 
   const saveProfileData = async () => {
-    const userId = auth.currentUser.uid;
+    const newData = { ...profileData };
     try {
-      await setDoc(doc(db, 'users', userId), {
-        displayName: profileData.displayName,
-        bio: profileData.bio
-      }, { merge: true });
+      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      await setDoc(userDocRef, newData, { merge: true });
+      // await AsyncStorage.setItem('@user_data', JSON.stringify(newData));
       Alert.alert('Success', 'Profile updated successfully!');
       navigation.navigate('Profile');
     } catch (error) {
-      console.error('Error saving profile data:', error);
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      Alert.alert('Error', 'Failed to update profile.');
     }
   };
   
@@ -53,7 +45,7 @@ const ProfileSettingsScreen = ({ navigation }) => {
       await AsyncStorage.removeItem('@user_data'); // Clear stored user data
       await AsyncStorage.setItem('resetProfileScreen', 'true'); // Set a flag when signing out
       Alert.alert('Sign Out', 'You have signed out!');
-      navigation.navigate('SignInScreen');
+      navigation.navigate('Profile');
     } catch (error) {
       console.error('Error signing out:', error);
       Alert.alert('Error', 'Failed to sign out.');

@@ -103,22 +103,18 @@ const SearchScreen = ({ navigation }) => {
         }
     
         if (term) {
-            const lowerCaseTerm = normalizeString(term);
+            const lowerCaseTerm = term.toLowerCase();
             cityResults = cityResults.filter(
-                result => {
-                    const name = normalizeString(result.name);
-                    const location = result.location ? normalizeString(result.location.city) : '';
-                    const city = normalizeString(result.city);
-                    return name.includes(lowerCaseTerm) || location.includes(lowerCaseTerm) || city.includes(lowerCaseTerm);
-                }
+                result => result.name?.toLowerCase().includes(lowerCaseTerm) ||
+                result.location?.city?.toLowerCase().includes(lowerCaseTerm) ||
+                result.city?.toLowerCase().includes(lowerCaseTerm)
             );
         }
     
         if (userHobbies.length > 0 && filterByHobbies) {
             cityResults = cityResults.filter(result => {
-                const categoriesText = getCategoriesText(result.categories);
-                const normalizedCategories = normalizeString(categoriesText);
-                return userHobbies.some(hobby => normalizedCategories.includes(normalizeString(hobby)));
+                const categoriesText = result.categories ? result.categories.toLowerCase() : '';
+                return userHobbies.some(hobby => categoriesText.includes(hobby.toLowerCase()));
             });
         }
     
@@ -134,7 +130,7 @@ const SearchScreen = ({ navigation }) => {
             const filtered = cities.filter((city) =>
                 city.label.toLowerCase().includes(query.toLowerCase())
             );
-            setAutocompleteData(filtered);
+            setAutocompleteData(cities.filter(city => city.label.toLowerCase().includes(query.toLowerCase())));
         }
     };
 

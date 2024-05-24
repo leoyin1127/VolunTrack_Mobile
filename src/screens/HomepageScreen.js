@@ -135,7 +135,7 @@ const HomepageScreen = ({route, navigation}) => {
     const progress = (totalCompleted / totalHours) * 100;
 
     return(
-        <ScrollView>
+        <ScrollView style={styles.scrollView}>
             <View style={styles.topBar}>
                 <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
                     <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
@@ -184,6 +184,9 @@ const HomepageScreen = ({route, navigation}) => {
 }
 
 const styles = StyleSheet.create ({
+    scrollView:{
+        backgroundColor: colors.background,
+    },
     progressBarContainer: {
         height: 20,
         width: '75%', // 进度条宽度占屏幕宽度的比例

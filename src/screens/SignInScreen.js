@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../api/firebaseConfig';
 import colors from '../../assets/colors/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../api/firebaseConfig';
 
 const SignInScreen = ({ navigation, route }) => {
   const [email, setEmail] = useState('');
@@ -21,18 +22,15 @@ const SignInScreen = ({ navigation, route }) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (userCredential.user && userCredential.user.emailVerified) {
-        const userData = {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          displayName: userCredential.user.displayName
-        };
-        await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
-        await AsyncStorage.setItem('resetFirstLoad', 'true'); // Set a flag when signing in
-        const isNewUser = await AsyncStorage.getItem('isNewUser');
-        if (isNewUser === 'true') {
-            navigation.navigate('UserInfoScreen');
+        const userDocRef = doc(db, 'users', userCredential.user.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
+          navigation.navigate(userData.isNewUser ? 'UserInfoScreen' : 'Homepage');
         } else {
-            navigation.navigate('Homepage');
+          console.error("No such user!");
+          Alert.alert('Error', 'No user data available.');
         }
       } else {
         Alert.alert('Login Failed', 'Please verify your email before signing in.');
