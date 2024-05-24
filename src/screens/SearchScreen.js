@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { StatusBar, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { StatusBar, Image, StyleSheet, ScrollView, Text, RefreshControl, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import colors from '../../assets/colors/colors';
 import SearchSearchBar from '../components/SearchSearchBar';
@@ -27,6 +27,15 @@ const SearchScreen = ({ navigation }) => {
 
     const [currentUser, setCurrentUser] = useState(null);
 
+    const [refreshing, setRefreshing] = useState(false);
+
+    const refreshResults = useCallback(() => {
+        setRefreshing(true);
+        searchApi(term, selectedCity).then(() => {
+            setRefreshing(false); // Stop the refreshing indicator
+        });
+    }, [term, selectedCity, searchApi]);
+
     useFocusEffect(
         useCallback(() => {
             const fetchUserData = async () => {
@@ -47,7 +56,9 @@ const SearchScreen = ({ navigation }) => {
         useCallback(() => {
         if (initialLoadRef.current) {
             const performSearch = async () => {
+            setIsLoading(true); // Start loading
             await searchApi('volunteer', selectedCity); // Perform the search with the default term
+            setIsLoading(false); // End loading
             };
 
             performSearch();
@@ -101,23 +112,28 @@ const SearchScreen = ({ navigation }) => {
         }
     
         if (term) {
-            const lowerCaseTerm = term.toLowerCase();
+            const lowerCaseTerm = normalizeString(term);
             cityResults = cityResults.filter(
-                result => result.name?.toLowerCase().includes(lowerCaseTerm) ||
-                result.location?.city?.toLowerCase().includes(lowerCaseTerm) ||
-                result.city?.toLowerCase().includes(lowerCaseTerm)
+                result => {
+                    const name = result.name ? normalizeString(result.name) : '';
+                    const location = result.location && result.location.city ? normalizeString(result.location.city) : '';
+                    const city = result.city ? normalizeString(result.city) : '';
+                    return name.includes(lowerCaseTerm) || location.includes(lowerCaseTerm) || city.includes(lowerCaseTerm);
+                }
             );
         }
     
         if (userHobbies.length > 0 && filterByHobbies) {
             cityResults = cityResults.filter(result => {
-                const categoriesText = result.categories ? result.categories.toLowerCase() : '';
-                return userHobbies.some(hobby => categoriesText.includes(hobby.toLowerCase()));
+                const categoriesText = result.categories ? getCategoriesText(result.categories) : '';
+                const normalizedCategories = normalizeString(categoriesText);
+                return userHobbies.some(hobby => normalizedCategories.includes(normalizeString(hobby)));
             });
         }
     
         setFilteredResults(cityResults);
     }, [selectedCity, term, results, userHobbies, filterByHobbies]);
+    
     
     
     const handleCitySearch = (query) => {
@@ -128,14 +144,12 @@ const SearchScreen = ({ navigation }) => {
             const filtered = cities.filter((city) =>
                 city.label.toLowerCase().includes(query.toLowerCase())
             );
-            setAutocompleteData(cities.filter(city => city.label.toLowerCase().includes(query.toLowerCase())));
+            setAutocompleteData(filtered);
         }
     };
 
     const handleSearchSubmit = async () => {
-        setIsLoading(true); // Start loading
         await searchApi(term, selectedCity); // Perform the search
-        setIsLoading(false); // End loading
     };
     
 
@@ -227,7 +241,12 @@ const SearchScreen = ({ navigation }) => {
     });
 
   return (
-    <ScrollView style={staticStyles.scrollView}>
+    <ScrollView style={staticStyles.scrollView} refreshControl={
+        <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refreshResults}
+        />
+    }>
         <View style={staticStyles.container}>
             <View style={staticStyles.topBar}>
                 <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>

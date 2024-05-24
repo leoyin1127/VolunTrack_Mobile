@@ -2,22 +2,33 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert, TouchableOpacity } from 'react-native';
 import { auth, db } from '../api/firebaseConfig';
 import { signOut } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from '../../assets/colors/colors';
 
 const ProfileSettingsScreen = ({ navigation }) => {
-
   const [profileData, setProfileData] = useState({
     displayName: '',
     bio: '',
     hobbies: [],
+    birthday: '',
+    city: '',
   });
 
   useEffect(() => {
     const loadProfileData = async () => {
-      const data = await AsyncStorage.getItem('@user_data');
-      if (data) setProfileData(JSON.parse(data));
+      if (auth.currentUser) {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setProfileData(data);
+          // Optionally update local storage if needed
+          await AsyncStorage.setItem('@user_data', JSON.stringify(data));
+        } else {
+          Alert.alert('Error', 'No profile data found.');
+        }
+      }
     };
     loadProfileData();
   }, []);
@@ -74,6 +85,24 @@ const ProfileSettingsScreen = ({ navigation }) => {
         numberOfLines={2}
         value={profileData.bio}
         onChangeText={(text) => setProfileData({ ...profileData, bio: text })}
+      />
+      <Text style={styles.label}>Birthday</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Your birthday"
+        multiline
+        numberOfLines={2}
+        value={profileData.birthday}
+        onChangeText={(text) => setProfileData({ ...profileData, birthday: text })}
+      />
+      <Text style={styles.label}>City</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="City you live or work"
+        multiline
+        numberOfLines={2}
+        value={profileData.city}
+        onChangeText={(text) => setProfileData({ ...profileData, city: text })}
       />
       <TouchableOpacity style={styles.button} onPress={navigateToInterests}>
         <Text style={styles.buttonText}>Edit Interests</Text>
