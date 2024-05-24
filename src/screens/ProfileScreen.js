@@ -1,130 +1,81 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { auth, db } from '../api/firebaseConfig';
-import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { useFocusEffect } from '@react-navigation/native';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { launchImageLibrary } from 'react-native-image-picker';
 import storage from '@react-native-firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import colors from '../../assets/colors/colors';
 
 const ProfileScreen = ({ navigation }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const isMounted = useRef(true);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const firstLoad = useRef(true);
 
-  const firstLoad = useRef(true); // useRef to track the initial load
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchUserData();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      const resetStateIfNeeded = async () => {
-        const shouldReset = await AsyncStorage.getItem('resetFirstLoad');
-        if (shouldReset === 'true') {
-          firstLoad.current = true; // Reset the first load indicator
-          await AsyncStorage.removeItem('resetFirstLoad'); // Clear the flag
-        }
+    useFocusEffect(
+      useCallback(() => {
+        const resetStateIfNeeded = async () => {
+          const shouldReset = await AsyncStorage.getItem('resetFirstLoad');
+          if (shouldReset === 'true') {
+            firstLoad.current = true;
+            await AsyncStorage.removeItem('resetFirstLoad');
+          }
   
-        if (firstLoad.current) {
-          setLoading(true);
+          if (firstLoad.current) {
+            setLoading(true);
+            fetchUserData();
+            firstLoad.current = false;
+          }
+        };
+  
+        resetStateIfNeeded();
+      }, [])
+    );
+
+    useEffect(() => {
+      const unsubscribe = onAuthStateChanged(auth, user => {
+        if (user) {
           fetchUserData();
-          firstLoad.current = false;
+        } else {
+          setCurrentUser(null); // Ensure user state is reset
+          setLoading(false); // Stop loading state
+          AsyncStorage.removeItem('@user_data'); // Optionally clear user data
         }
-      };
-  
-      resetStateIfNeeded();
-    }, [])
-  ); 
+      });
+    
+      return () => unsubscribe(); // Correctly unsubscribe on component unmount
+    }, []);
+    
 
-  const fetchUserData = async () => {
-    try {
-        const userDocRef = doc(db, 'users', auth.currentUser.uid);
-        const jsonValue = await AsyncStorage.getItem('@user_data');
-        const userData = jsonValue != null ? JSON.parse(jsonValue) : null;
-
-        console.log(jsonValue)
-
-        const docSnap = await getDoc(userDocRef);
-        if (docSnap.exists()) {
+    const fetchUserData = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userDocRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
             const userData = docSnap.data();
             setCurrentUser(userData);
+            console.log(userData);
             await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
-        } else {
-            console.log("No user data available");
-        }
-    } catch (error) {
-        console.error("Failed to fetch user data:", error);
-    }
-    setRefreshing(false);
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-        const checkUser = async () => {
-            try {
-                const jsonValue = await AsyncStorage.getItem('@user_data');
-                const userData = jsonValue != null ? JSON.parse(jsonValue) : null;
-                if (userData) {
-                    setCurrentUser(userData);
-                } else {
-                    setCurrentUser(null);
-                }
-            } catch (e) {
-                console.error('Failed to load user data:', e);
-                Alert.alert('Error', 'Failed to load data');
-            }
-        };
-
-        checkUser();
-    }, [])
-  );
-
-  useEffect(() => {
-    const checkUserAuthentication = async () => {
-      const storedUserData = await loadUserData();
-      if (storedUserData) {
-        setCurrentUser(storedUserData);
-        setLoading(false);
-      } else {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-          if (user && user.emailVerified) {
-            // Fetch and set user data here
-            setLoading(false);
           } else {
-            setCurrentUser(null);
-            setLoading(false);
+            console.log("No user data available");
           }
-        });
-        return () => {
-          unsubscribe();
-          isMounted.current = false;
-        };
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    checkUserAuthentication();
+    const onRefresh = useCallback(() => {
+      setRefreshing(true);
+      fetchUserData().finally(() => setRefreshing(false));
   }, []);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      await AsyncStorage.removeItem('@user_data'); // Clear stored user data
-      setCurrentUser(null);
-      navigation.replace('SignInScreen'); // Replace the current screen with the sign-in screen
-    } catch (error) {
-      console.error('Error signing out: ', error);
-      alert('Failed to sign out.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const saveUserData = async (userData) => {
     try {

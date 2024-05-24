@@ -22,12 +22,20 @@ const SignInScreen = ({ navigation, route }) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (userCredential.user && userCredential.user.emailVerified) {
+        // Fetch additional user data from Firestore
         const userDocRef = doc(db, 'users', userCredential.user.uid);
         const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
           const userData = docSnap.data();
-          await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
-          navigation.navigate(userData.isNewUser ? 'UserInfoScreen' : 'Homepage');
+          // Add email and password for storage
+          const storedData = {
+            ...userData,
+            email: email,  // Storing the email in the user data object
+            password: password  // Storing the password in the user data object (use with caution)
+          };
+          // Store the enhanced user data in AsyncStorage
+          await AsyncStorage.setItem('@user_data', JSON.stringify(storedData));
+          navigation.navigate(storedData.isNewUser ? 'UserInfoScreen' : 'Homepage');
         } else {
           console.error("No such user!");
           Alert.alert('Error', 'No user data available.');
@@ -55,6 +63,7 @@ const SignInScreen = ({ navigation, route }) => {
       }
     }
   };
+  
 
   const togglePasswordVisibility = () => {
     setPasswordVisibility(!passwordVisibility);

@@ -47,9 +47,7 @@ const SearchScreen = ({ navigation }) => {
         useCallback(() => {
         if (initialLoadRef.current) {
             const performSearch = async () => {
-            setIsLoading(true); // Start loading
             await searchApi('volunteer', selectedCity); // Perform the search with the default term
-            setIsLoading(false); // End loading
             };
 
             performSearch();

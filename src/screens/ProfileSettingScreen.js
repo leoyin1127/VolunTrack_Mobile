@@ -30,14 +30,18 @@ const ProfileSettingsScreen = ({ navigation }) => {
     const newData = { ...profileData };
     try {
       const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      // Update Firestore
       await setDoc(userDocRef, newData, { merge: true });
-      // await AsyncStorage.setItem('@user_data', JSON.stringify(newData));
+      // Update AsyncStorage with the same data to keep local sync with the cloud
+      await AsyncStorage.setItem('@user_data', JSON.stringify(newData));
       Alert.alert('Success', 'Profile updated successfully!');
       navigation.navigate('Profile');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile.');
+      console.error('Error updating profile data:', error);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
     }
   };
+  
   
   const handleSignOut = async () => {
     try {
