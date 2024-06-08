@@ -8,73 +8,106 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import storage from '@react-native-firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from '../../assets/colors/colors';
+import NotificationBanner from '../components/NotificationBanner'; // Adjust the path as necessary
 
 const ProfileScreen = ({ navigation }) => {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [refreshing, setRefreshing] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const firstLoad = useRef(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const firstLoad = useRef(true);
+  const [bannerMessage, setBannerMessage] = useState('');
+  const [bannerType, setBannerType] = useState('success');
 
-    useFocusEffect(
-      useCallback(() => {
-        const resetStateIfNeeded = async () => {
-          const shouldReset = await AsyncStorage.getItem('resetFirstLoad');
-          if (shouldReset === 'true') {
-            firstLoad.current = true;
-            await AsyncStorage.removeItem('resetFirstLoad');
-          }
-  
-          if (firstLoad.current) {
-            setLoading(true);
-            fetchUserData();
-            firstLoad.current = false;
-          }
-        };
-  
-        resetStateIfNeeded();
-      }, [])
-    );
+  useFocusEffect(
+    useCallback(() => {
+      const showBannerIfNeeded = async () => {
+        const bannerToShow = await AsyncStorage.getItem('bannerMessage');
+        if (bannerToShow) {
+          setBannerMessage(bannerToShow);
+          setBannerType(await AsyncStorage.getItem('bannerType') || 'success');
+          await AsyncStorage.removeItem('bannerMessage');
+          await AsyncStorage.removeItem('bannerType');
+        }
+      };
 
-    useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, user => {
-        if (user) {
+      showBannerIfNeeded();
+    }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const resetStateIfNeeded = async () => {
+        const shouldReset = await AsyncStorage.getItem('resetFirstLoad');
+        if (shouldReset === 'true') {
+          firstLoad.current = true;
+          await AsyncStorage.removeItem('resetFirstLoad');
+        }
+  
+        if (firstLoad.current) {
+          setLoading(true);
           fetchUserData();
-        } else {
-          setCurrentUser(null); // Ensure user state is reset
-          setLoading(false); // Stop loading state
-          AsyncStorage.removeItem('@user_data'); // Optionally clear user data
+          firstLoad.current = false;
         }
-      });
-    
-      return () => unsubscribe(); // Correctly unsubscribe on component unmount
-    }, []);
-    
+      };
+  
+      resetStateIfNeeded();
+    }, [])
+  );
 
-    const fetchUserData = async () => {
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const userDocRef = doc(db, 'users', user.uid);
-          const docSnap = await getDoc(userDocRef);
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-            setCurrentUser(userData);
-            console.log(userData);
-            await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
-          } else {
-            console.log("No user data available");
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-      } finally {
-        setLoading(false);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      if (user) {
+        fetchUserData();
+      } else {
+        setCurrentUser(null); // Ensure user state is reset
+        setLoading(false); // Stop loading state
+        AsyncStorage.removeItem('@user_data'); // Optionally clear user data
+      }
+    });
+    
+    return () => unsubscribe(); // Correctly unsubscribe on component unmount
+  }, []);
+
+  useEffect(() => {
+    const checkForBanner = async () => {
+      const message = await AsyncStorage.getItem('bannerMessage');
+      const type = await AsyncStorage.getItem('bannerType');
+      if (message && type) {
+        setBannerMessage(message);
+        setBannerType(type);
+        // Clear the banner data after setting state
+        await AsyncStorage.removeItem('bannerMessage');
+        await AsyncStorage.removeItem('bannerType');
       }
     };
 
-    const onRefresh = useCallback(() => {
-      setRefreshing(true);
-      fetchUserData().finally(() => setRefreshing(false));
+    checkForBanner();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          setCurrentUser(userData);
+          await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
+        } else {
+          console.log("No user data available");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchUserData().finally(() => setRefreshing(false));
   }, []);
 
   const saveUserData = async (userData) => {
@@ -89,6 +122,7 @@ const ProfileScreen = ({ navigation }) => {
   const loadUserData = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('@user_data');
+      console.log(jsonValue);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (e) {
       console.error('Failed to load user data', e);
@@ -159,6 +193,8 @@ const ProfileScreen = ({ navigation }) => {
         <TouchableOpacity style={[styles.button, styles.signInButton]} onPress={() => navigation.navigate('SignInScreen')}>
           <Text style={styles.signInButtonText}>Sign In</Text>
         </TouchableOpacity>
+        {bannerMessage && <NotificationBanner message={bannerMessage} type={bannerType} />}
+
       </View>
     );
   }
@@ -212,6 +248,7 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
       </View>
+      {bannerMessage && <NotificationBanner message={bannerMessage} type={bannerType} />}
     </ScrollView>
   );
 };
