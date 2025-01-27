@@ -15,6 +15,7 @@ import SearchScreen from './src/screens/SearchScreen';
 import VolunteeringScreen from './src/screens/VolunteeringScreen'; 
 import ProfileSettingScreen from './src/screens/ProfileSettingScreen'; 
 import HomepageSettingScreen from './src/screens/HomepageSettingScreen'; 
+<<<<<<< Updated upstream
 import ProfileScreen from './src/screens/ProfileScreen';
 import SignInScreen from './src/screens/SignInScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
@@ -22,6 +23,17 @@ import UserInfoScreen from './src/screens/UserInfoScreen';
 import UserInterestsScreen from './src/screens/UserInterestsScreen';
 import EditInterestScreen from './src/screens/EditInterestScreen';
 import EditCityScreen from './src/screens/EditCityScreen';
+=======
+import ProfileScreen from './src/screens/NewVersion/SignInUpScreen';
+// import SignInScreen from './src/screens/SignInScreen';
+// import SignUpScreen from './src/screens/SignUpScreen';
+import SignInScreen from './src/screens/NewVersion/SignInScreen';
+import SignUpScreen from './src/screens/NewVersion/SignUpScreen';
+import ForgetPassword from './src/screens/NewVersion/ForgetPassword';
+import UserInfoScreen from './src/screens/NewUserScreens/UserInfoScreen';
+import UserInterestsScreen from './src/screens/NewUserScreens/UserInterestsScreen';
+import UserSkillsScreen from './src/screens/NewUserScreens/UserSkillsScreen';
+>>>>>>> Stashed changes
 
 import colors from './assets/colors/colors';
 
@@ -159,7 +171,7 @@ export default function App() {
               name="SignInScreen"
               component={SignInScreen}
               options={{
-                headerShown: true,
+                headerShown: false,
                 title: 'Sign In'
               }}
             />
@@ -167,7 +179,15 @@ export default function App() {
               name="SignUpScreen"
               component={SignUpScreen}
               options={{
-                headerShown: true,
+                headerShown: false,
+                title: 'Sign Up'
+              }}
+            />
+            <RootStack.Screen
+              name="ForgetPassword"
+              component={ForgetPassword}
+              options={{
+                headerShown: false,
                 title: 'Sign Up'
               }}
             />
@@ -203,6 +223,16 @@ export default function App() {
                 title: 'Edit your location'
               }}
             />
+            <RootStack.Screen
+              name="OnboardingScreen"
+              component={OnboardingScreen}
+              options={{
+                headerShown: false,
+                title: 'Onboarding'
+              }}
+              initialParams={{ onFinished: handleFinishedOnboarding }} // Pass the onFinished function as a parameter
+            />
+
           </RootStack.Navigator>
         ) : (
           <OnboardingScreen onFinished={handleFinishedOnboarding} />
