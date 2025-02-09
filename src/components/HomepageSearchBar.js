@@ -1,24 +1,25 @@
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-
+import { StyleSheet, TextInput, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import colors from '../../assets/colors/colors';
 import { EvilIcons } from '@expo/vector-icons';
 
-
-const HomepageSearchBar = ({term, onTermChange, onTermSubmit}) => {
+const HomepageSearchBar = ({ term, onTermChange, onTermSubmit }) => {
     return (
-        <View style = {styles.backgroundStyle}>
-            <EvilIcons name = "search" style = {styles.iconStyle} />
-            <TextInput
-               autoCapitalize = "none"
-               autoCorrect = {false}
-               style = {styles.inputStyle}
-               placeholder = "Search old/current oppurtunities" placeholderTextColor = 'gray'
-               value = {term}
-               onChangeText = {onTermChange}
-               onEndEditing = {onTermSubmit}
-            />
-        </View>
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <View style={styles.backgroundStyle}>
+                <EvilIcons name="search" style={styles.iconStyle} />
+                <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={styles.inputStyle}
+                    placeholder="Search Organization / Job"
+                    placeholderTextColor="gray"
+                    value={term}
+                    onChangeText={onTermChange}
+                    onEndEditing={onTermSubmit}
+                />
+            </View>
+        </TouchableWithoutFeedback>
     );
 };
 
@@ -26,27 +27,26 @@ const styles = StyleSheet.create({
     backgroundStyle: {
         backgroundColor: colors.background,
         height: 40,
-        borderRadius: 40,
-        marginHorizontal: 30,
+        borderRadius: 10,
+        marginHorizontal: 15,
         flexDirection: 'row',
         marginBottom: 10,
-        borderWidth: 1, // 设置边框宽度
-        borderColor: colors.primary, // 假设 colors.primary 是您想要的蓝色
-        borderRadius: 10,
-        
+        marginTop: 15,
+        borderWidth: 1,
+        borderColor: '#696969',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-
     inputStyle: {
-        flex: 1,
         fontSize: 16,
+        marginRight: 25,
     },
-    
     iconStyle: {
         fontSize: 25,
-        alignSelf: 'center',
-        color: colors.primary,
-        marginHorizontal: 10, 
-    }
+        color: '#696969',
+        marginHorizontal: 10,
+        marginBottom: 5
+    },
 });
 
 export default HomepageSearchBar;

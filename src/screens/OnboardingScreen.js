@@ -4,7 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
-const OnboardingScreen = ({ navigation, onFinished }) => {
+const OnboardingScreen = ({ navigation, route }) => {
+  const onFinished = route?.params?.onFinished;
   const [currentPage, setCurrentPage] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(0)); // Initial opacity set to 0
 
@@ -20,7 +21,7 @@ const OnboardingScreen = ({ navigation, onFinished }) => {
       subtitle: 'Manage your volunteer schedule and opportunities effortlessly with our intuitive app.',
     },
     {
-      background: require('../../assets/NewVersion/onboarding1.png'),
+      background: require('../../assets/NewVersion/onboarding3.png'),
       title: 'Start to find your dream job',
       subtitle: 'Find and apply for your ideal job with our smart recommendations and resources.',
     },
@@ -31,7 +32,7 @@ const OnboardingScreen = ({ navigation, onFinished }) => {
     if (currentPage === pages.length - 1) {
       try {
         await AsyncStorage.setItem('onboardingCompleted', 'true');
-        navigation.navigate('Profile'); // Navigate directly to the Profile tab
+        navigation.navigate('SignInUpScreen'); // Navigate directly to the Profile tab
         onFinished(); // Call onFinished when onboarding is completed
       } catch (e) {
         console.error('Error saving onboarding state:', e);

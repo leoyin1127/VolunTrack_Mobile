@@ -1,304 +1,202 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { Button, Image, StyleSheet, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { StatusBar, ScrollView, Text, TouchableOpacity, View, Image, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import useSearchApi from '../hooks/useResults'; 
 
 import colors from '../../assets/colors/colors';
 import HomepageSearchBar from '../components/HomepageSearchBar';
+import Categories from '../components/Categories';
 import ResultsList from '../components/ResultsList';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const HomepageScreen = ({route, navigation}) => {
-    const [searchTerm, setSearchTerm] = useState('');
+const HomepageScreen = ({ navigation }) => {
+    const [term, setTerm] = useState(''); 
+    const [selectedCity, setSelectedCity] = useState('');
+    const [searchApi, results, errorMessage] = useSearchApi();
+    const [filteredResults, setFilteredResults] = useState([]);
+    const [userHobbies, setUserHobbies] = useState([]);
+    const [filterByHobbies, setFilterByHobbies] = useState(true);
 
-    const [totalCompleted, setTotalCompleted] = useState(0); 
-    const [totalHours, setTotalHours] = useState(100); 
+    const [isLoading, setIsLoading] = useState(false);
 
-    const [tasks, setTasks] = useState([]);
-    const [filteredTasks, setFilteredTasks] = useState([]);
-    const [, setFilter] = useState('all'); // 默认显示所有任务
-    const [activeFilter, setActiveFilter] = useState('all');
+    const initialLoadRef = useRef(true); // Ref to track the initial load
 
-    const fetchTasks = async () => {
-        try {
-            const keys = await AsyncStorage.getAllKeys();
-            const result = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@task_status_')));
-            const fetchedTasks = result.map(([key, value]) => JSON.parse(value));
-            setTasks(fetchedTasks);
-            handleFilterChange('all', fetchedTasks); // This ensures filter is applied right after fetching
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
-        }
-    };    
+    const [currentUser, setCurrentUser] = useState(null);
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    const refreshResults = useCallback(() => {
+        setRefreshing(true);
+        searchApi(term, selectedCity).then(() => {
+            setRefreshing(false); // Stop the refreshing indicator
+        });
+    }, [term, selectedCity, searchApi]);
 
     useFocusEffect(
         useCallback(() => {
-            const fetchDataAndUpdateState = async () => {
-                await fetchTasks(); // Fetch tasks from AsyncStorage
-                handleFilterChange('all'); // Always reset to 'All' filter upon focusing
+            const fetchUserData = async () => {
+                const storedUserData = await AsyncStorage.getItem('@user_data');
+                if (storedUserData) {
+                    const userData = JSON.parse(storedUserData);
+                    setCurrentUser(userData);
+                    setUserHobbies(userData.hobbies);
+                } else {
+                    // Optionally fetch from Firestore if needed or handle user not found
+                }
             };
-    
-            fetchDataAndUpdateState();
-        }, []) // Dependencies array is empty to indicate this effect doesn't depend on any state or props
-    );
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchTasks(); // handleFilterChange is called within fetchTasks
+            fetchUserData();
         }, [])
     );
+
+    useFocusEffect(
+        useCallback(() => {
+        if (initialLoadRef.current) {
+            const performSearch = async () => {
+            setIsLoading(true); // Start loading
+            await searchApi('volunteer', selectedCity); // Perform the search with the default term
+            setIsLoading(false); // End loading
+            };
+
+            performSearch();
+            initialLoadRef.current = false; // Set to false after initial load
+        }
+        }, [selectedCity]) // Dependency on selectedCity if you want to filter by city as well
+    );
+
+    const normalizeString = (inputString) => {
+        return inputString.toLowerCase();
+    };
     
-    const handleFilterChange = (newFilter, allTasks = tasks) => {
-        setActiveFilter(newFilter);
-        let filtered = allTasks;
-        
-        if (newFilter === 'all') {
-            filtered = filtered.filter(task => task.status === 'Ongoing' || task.status === 'Completed');
+    const getCategoriesText = (categories) => {
+        if (typeof categories === 'string') {
+            return categories;  // If it's already a string, return it as is
+        } else if (Array.isArray(categories)) {
+            // If it's an array, assume it's an array of objects with a 'title' key
+            return categories.map(cat => cat.title).join(', ');
         }
-        else if (newFilter === 'ongoing') {
-            filtered = filtered.filter(task => task.status === 'Ongoing');
-        } else if (newFilter === 'completed') {
-            filtered = filtered.filter(task => task.status === 'Completed');
-        }
-        // Filter by search term if it's not empty
-        if (searchTerm) {
-            filtered = filtered.filter(task =>
-                task.name.toLowerCase().includes(searchTerm.toLowerCase())
+        return '';  // Return an empty string if neither
+    };
+    
+    useEffect(() => {
+        let cityResults = results;
+    
+        if (selectedCity) {
+            cityResults = cityResults.filter(
+                result => (result.location && result.location.city === selectedCity) || (result.city === selectedCity)
             );
         }
-        setFilteredTasks(filtered);
-    };  
-
-    useEffect(() => {
-        handleFilterChange(activeFilter);
-    }, [searchTerm]);
-
-    const FilterButton = ({ title, isActive, onPress }) => (
-        <TouchableOpacity style={styles.filterButton} onPress={onPress}>
-            <Text style={[styles.filterButtonText, isActive && styles.filterButtonActiveText]}>{title}</Text>
-            {isActive && <View style={styles.activeFilterLine} />}
-        </TouchableOpacity>
-    );      
-
-    useEffect(() => {
-        const loadInitialTotalCompleted = async () => {
-            try {
-                const initialTotalCompleted = await AsyncStorage.getItem('totalCompleted');
-                if (initialTotalCompleted !== null) {
-                    setTotalCompleted(parseInt(initialTotalCompleted, 10));
-                }
-            } catch (e) {
-                console.error('Error loading totalCompleted:', e);
-            }
-        };
-
-        loadInitialTotalCompleted();
-    }, []);
-
-    // Completed Hours As Sum Of User Inputs
-    useFocusEffect(
-        React.useCallback(() => {
-            const loadCompletedHours = async () => {
-                try {
-                    const keys = await AsyncStorage.getAllKeys();
-                    const completedHoursArray = await AsyncStorage.multiGet(keys.filter(key => key.startsWith('@completed_hours_')));
-                    const totalCompletedHours = completedHoursArray.reduce((total, [, value]) => {
-                        return total + parseInt(value, 10);
-                    }, 0);
-
-                    setTotalCompleted(totalCompletedHours);
-                } catch (e) {
-                    console.error('Error loading total completed hours:', e);
-                }
-            };
-
-            loadCompletedHours();
-        }, [])
-    );
-    // Completed Hours As Sum Of User Inputs
-
-    useFocusEffect(
-        React.useCallback(() => {
-            const getHours = async () => {
-                try {
-                const hours = await AsyncStorage.getItem('userHours');
-                if (hours !== null) {
-                    setTotalHours(parseInt(hours, 10));
-                }
-                } catch (e) {
-                }
-            };
-            getHours();
-        }, [])
-    );
     
-    const progress = (totalCompleted / totalHours) * 100;
+        if (term) {
+            const lowerCaseTerm = normalizeString(term);
+            cityResults = cityResults.filter(
+                result => {
+                    const name = result.name ? normalizeString(result.name) : '';
+                    const location = result.location && result.location.city ? normalizeString(result.location.city) : '';
+                    const city = result.city ? normalizeString(result.city) : '';
+                    return name.includes(lowerCaseTerm) || location.includes(lowerCaseTerm) || city.includes(lowerCaseTerm);
+                }
+            );
+        }
+    
+        if (userHobbies.length > 0 && filterByHobbies) {
+            cityResults = cityResults.filter(result => {
+                const categoriesText = result.categories ? getCategoriesText(result.categories) : '';
+                const normalizedCategories = normalizeString(categoriesText);
+                return userHobbies.some(hobby => normalizedCategories.includes(normalizeString(hobby)));
+            });
+        }
+    
+        setFilteredResults(cityResults);
+    }, [selectedCity, term, results, userHobbies, filterByHobbies]);
 
-    return(
-        <ScrollView style={styles.scrollView}>
+    const handleSearchSubmit = async () => {
+        await searchApi(term, selectedCity); // Perform the search
+    };
+    
+    return (
+        <ScrollView
+            style={styles.scrollView}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={refreshResults}
+                />
+            }
+        >
             <View style={styles.topBar}>
-                <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')}>
+                <TouchableOpacity onPress={() => navigation.navigate('AboutUsScreen')} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 20, fontWeight: '500', marginRight: 5 }}>Volunteer</Text>
                     <Image source={require('../../assets/adaptive-icon-cropped.png')} style={styles.icon} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('HomepageSettingScreen')}>
-                    <Image source={require('../../assets/icons/SettingIcon.png')} style={styles.SettingIcon} />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5 }}>
+                    <TouchableOpacity>
+                        <Ionicons             
+                            name={'search-outline'} 
+                            size={30}
+                            color={'#000000'} 
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{marginLeft: 5}} onPress={() => navigation.navigate('HomepageSettingScreen')}>
+                        <Ionicons             
+                            name={'options-outline'} 
+                            size={30}
+                            color={'#000000'} 
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
-            <Text style = { styles.header }>VolunTrack</Text>
-            <Text style = { styles.text }>Track your volunteering hours and explore new volunteering opportunities!</Text>
             <HomepageSearchBar
-                term={searchTerm}
-                onTermChange={setSearchTerm}
-                onTermSubmit={() => handleFilterChange(activeFilter)}
+                term={term}
+                onTermChange={setTerm}
+                onTermSubmit={handleSearchSubmit}
             />
-
-            <View style={styles.progressBarContainer}>
-                <View style={[styles.progressBar, { width: `${progress}%` }]} />
-            </View>
-            
-            <Text style = { styles.hourText }> {totalCompleted}/{totalHours} Hours Completed</Text>
-            
-            <View style={styles.filterOptions}>
-                <FilterButton title="ALL" isActive={activeFilter === 'all'} onPress={() => handleFilterChange('all')} />
-                <FilterButton title="ONGOING" isActive={activeFilter === 'ongoing'} onPress={() => handleFilterChange('ongoing')} />
-                <FilterButton title="COMPLETED" isActive={activeFilter === 'completed'} onPress={() => handleFilterChange('completed')} />
-            </View>
-
-            {filteredTasks.length > 0 ? (
-                <ResultsList
-                    results={filteredTasks}
-                    navigation={navigation}
-                />
+            <Categories />
+            <Text style={styles.text}>Recommended Jobs</Text>
+            {isLoading ? (
+                <ActivityIndicator style={{margin: 30}} size="large" color={colors.primary} />
             ) : (
-                <Text style={styles.noResultsText}>
-                    {activeFilter === 'ongoing' && "You don't have any ongoing volunteering now."}
-                    {activeFilter === 'completed' && "You don't have any completed volunteering now."}
-                    {activeFilter === 'all' && "You don't have any ongoing/completed volunteering yet. Go apply one!"}
+                <ResultsList results={filteredResults} navigation={navigation} />
+            )}
+            {!isLoading && filteredResults.length === 0 && (
+                <Text style={styles.noResultsMessage}>
+                    No results found.
                 </Text>
             )}
-            
-            <StatusBar style = "auto" />
-            
         </ScrollView>
     );
 }
 
-const styles = StyleSheet.create ({
-    scrollView:{
+const styles = StyleSheet.create({
+    scrollView: {
         backgroundColor: colors.background,
+        paddingHorizontal: 10,
     },
-    progressBarContainer: {
-        height: 20,
-        width: '75%', // 进度条宽度占屏幕宽度的比例
-        backgroundColor: '#fafafa', // 进度条未填充部分的颜色
-        borderRadius: 20, // 使用较大的半径以获得圆角
-        marginVertical: 20, // 进度条与其他组件的垂直间距
-        alignSelf: 'center', // 居中显示
-        borderWidth: 1, // 边框宽度
-        borderColor: colors.primary, // 边框颜色，应与填充的进度条颜色相同
-        shadowColor: "#000", // 阴影颜色
-        shadowOffset: {
-            width: 0, // 水平偏移量
-            height: 2, // 垂直偏移量
-        },
-        shadowOpacity: 0.25, // 阴影不透明度
-        shadowRadius: 3.84, // 阴影半径
-        elevation: 5, // 仅在 Android 上的阴影高度
-        overflow: 'hidden', // 确保子视图不会超出边界
-    },
-    progressBar: {
-        height: '100%',
-        backgroundColor: colors.primary,
-        borderRadius: 10, // 进度条的圆角
-    },
-    header: {
-        color: colors.primary,
-        fontFamily: 'PingFangSC-Semibold', 
-        fontSize: 36, 
-        marginVertical: 15,
-        textAlign: 'center', 
-        fontWeight: 'bold',
-    }, 
-    subHeader: {
-        color: colors.primary,
-        fontFamily: 'PingFangSC-Semibold', 
-        fontSize: 28, 
-        marginVertical: 15,
-        textAlign: 'center', 
-        fontWeight: 'bold',
-    }, 
     text: {
-        color: colors.textDark, 
-        fontFamily: 'PingFangSC-Regular',
-        fontSize: 16, 
-        marginHorizontal: 60,
-        marginBottom: 40, 
-        textAlign: 'center'
-    },
-    hourText: {
-        color: colors.textDark, 
-        fontFamily: 'PingFangSC-Regular',
-        fontSize: 15, 
-        marginHorizontal: 60,
-        marginBottom: 20, 
-        marginTop: -15,
-        textAlign: 'center'
-    },
-    container: {
-        flex: 1,
+        fontSize: 20,
+        marginLeft: 15,
+        marginTop: 10,
+        color: '#000000',
+        fontWeight: 'bold',
     },
     topBar: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginTop: 15,
+        marginLeft: 20,
+        marginRight: 10,
     },
     icon: {
-        width: 60,
-        height: 60,
-        marginTop: 60,
-        marginLeft: 15,
+        width: 40,
+        height: 40,
     },
-    SettingIcon: {
-        width: 60,
-        height: 60,
-        marginTop: 60,
-        marginRight: 15,
-    },
-    filterOptions: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        paddingTop: 5, 
-
-    },
-    filterButton: {
-        flex: 1,
-        alignItems: 'center',
-        padding: 10, // Adjust as needed for padding around the text
-    },
-    filterButtonText: {
+    noResultsMessage: {
         textAlign: 'center',
-        fontWeight: 'normal',
-        color: colors.primary,
-    },
-    filterButtonActiveText: {
-        fontWeight: 'bold',
-        color: colors.primary,
-    },
-    activeFilterLine: {
-        height: 2,
-        width: '80%', // Line will fill the width of the button
-        backgroundColor: colors.primary,
-        marginTop: 5, // Space between text and line
-        borderRadius: 5,
-    },
-    noResultsText: {
-        width: '80%',
-        textAlign: 'center',
-        alignSelf: 'center',
-        marginTop: 15,
+        color: colors.text,
         fontSize: 16,
+        marginTop: 20,
     },
-})
+});
 
 export default HomepageScreen;

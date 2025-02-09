@@ -33,12 +33,11 @@ const SignInUpScreen = ({ navigation }) => {
                 <Text style={styles.createAccountButtonText}>Create an Account</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
                 style={styles.signInButton}
                 onPress={() => navigation.navigate('OnboardingScreen')}
             >
-
-            </TouchableOpacity>
+            </TouchableOpacity> */}
         </View>
     );
 };

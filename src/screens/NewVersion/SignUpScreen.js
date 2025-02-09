@@ -32,6 +32,7 @@ const emailValidator = (email) => {
 const SignUpScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [agreeToTerms, setAgreeToTerms] = useState(false);
     const [passwordVisibility, setPasswordVisibility] = useState(true); // Password initially hidden
     const [isEmailValid, setIsEmailValid] = useState(null); // null, true, or false
@@ -146,8 +147,8 @@ const SignUpScreen = ({ navigation }) => {
                 <TextInput
                 placeholder="Re-enter Password"
                 placeholderTextColor="#aaaaaa"
-                value={password}
-                onChangeText={setPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
                 secureTextEntry={passwordVisibility}
                 style={styles.input}
                 />
