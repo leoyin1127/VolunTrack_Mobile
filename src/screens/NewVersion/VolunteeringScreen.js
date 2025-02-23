@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Alert, StyleSheet, Text, Animated, View, Image, ScrollView, Modal, Linking, Button, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Clipboard } from 'react-native';
 import GoBack from '../../../assets/NewVersion/GoBack.png';
@@ -90,13 +90,45 @@ const VolunteeringScreen = ({ route, navigation }) => {
 
     const [isBookmarked, setIsBookmarked] = useState(false); // 控制书签状态
 
-    const scrollY = useRef(new Animated.Value(0)).current;
+    const [isScrolling, setIsScrolling] = useState(false);
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const timeoutId = useRef(null);
 
-    const buttonOpacity = scrollY.interpolate({
-        inputRange: [0, 150], // Adjust range for desired effect
-        outputRange: [1, 0.5], // Full visible to semi-transparent
-        extrapolate: 'clamp',
-    });
+    const animateButton = (toValue) => {
+        Animated.timing(fadeAnim, {
+            toValue,
+            duration: 200,
+            useNativeDriver: false,
+        }).start();
+    };
+
+    // 滚动开始处理
+    const handleScrollStart = () => {
+        setIsScrolling(true);
+        animateButton(0.5);
+
+        // 清除之前的定时器
+        if (timeoutId.current) {
+            clearTimeout(timeoutId.current);
+        }
+    };
+
+    // 滚动停止处理
+    const handleScrollEnd = () => {
+        timeoutId.current = setTimeout(() => {
+            setIsScrolling(false);
+            animateButton(1);
+        }, 200); // 200ms无滚动视为停止
+    };
+
+    useEffect(() => {
+        return () => {
+            // 组件卸载时清除定时器
+            if (timeoutId.current) {
+                clearTimeout(timeoutId.current);
+            }
+        };
+    }, []);
 
     const handleBookmark = async () => {
         const newBookmarkStatus = !isBookmarked;
@@ -222,155 +254,160 @@ const VolunteeringScreen = ({ route, navigation }) => {
     };
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={{ paddingBottom: 50 }}
-        >
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Image source={GoBack} style={styles.goback} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleBookmark}>
-                    <Ionicons
-                        name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-                        size={25}
-                        color={'#9967FE'}
-                    />
-                </TouchableOpacity>
-            </View>
-            <Text style={styles.name}>{itemData.name}</Text>
-            <View style={styles.organization}>
-                <Image source={require('../../../assets/name.png')} style={styles.organizationIcon} />
-                <Text style={styles.organizationText}>{itemData.organization ? itemData.organization : itemData.name}</Text>
-            </View>
-            {getImageSource(itemData.image_url) && (
-                <Image
-                    source={getImageSource(itemData.image_url)}
-                    style={styles.coverImage}
-                />
-            )}
-
-            <View style={styles.timeLocation}>
-                <TimeAndLocation
-                    name={itemData.name}
-                    address={fullAddress}
-                    categories={categoriesText}
-                    organization={itemData.organization}
-                    date={dateText}
-                    contactInfo={contactInfo}
-                    hours={itemData.hours}
-                    isValidCoordinates={isValidCoordinates()}
-                    formattedLatitude={formattedLatitude}
-                    formattedLongitude={formattedLongitude}
-                    fullAddress={fullAddress}
-                />
-            </View>
-
-            <Text style={styles.title}>
-                About
-            </Text>
-            <Text style={styles.description}>
-                {itemData.description ? itemData.description.replaceAll("\\n", "\n") : 'No description provided'}
-            </Text>
-
-            <Text style={styles.title}>
-                Contact
-            </Text>
-            <View style={styles.contactContainer}>
-                <TouchableOpacity
-                    style={[styles.button, !itemData.phone && styles.disabledButton]}
-                    onPress={() => itemData.phone && Linking.openURL(`tel:${itemData.phone}`)}
-                    disabled={!itemData.phone}
-                >
-                    <Ionicons
-                        name={'call-outline'}
-                        size={25}
-                        color={'#9967FE'}
-                    />
-                    <Text style={styles.buttonText}>Call</Text>
-                </TouchableOpacity>
-
-
-
-                <TouchableOpacity
-                    style={[styles.button, !itemData.email && styles.disabledButton]}
-                    onPress={() => itemData.email && Linking.openURL(`mailto:${itemData.email}`)}
-                    disabled={!itemData.email}
-                >
-                    <Ionicons
-                        name={'mail-outline'}
-                        size={25}
-                        color={'#9967FE'}
-                    />
-                    <Text style={styles.buttonText}>Email</Text>
-                </TouchableOpacity>
-
-
-                <TouchableOpacity style={styles.button} onPress={() => { }}>
-                    <Ionicons
-                        name={'chatbox-ellipses-outline'}
-                        size={25}
-                        color={'#9967FE'}
-                    />
-                    <Text style={styles.buttonText}>Chat</Text>
-                </TouchableOpacity>
-            </View>
-
-
-            <TouchableOpacity
-                style={styles.applyButton}
-                onPress={() => setApplyModalVisible(true)}>
-                <Text style={styles.applyButtonText}>Apply Now!</Text>
-            </TouchableOpacity>
-
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={applyModalVisible} // Controlled by applyModalVisible
-                onRequestClose={() => setApplyModalVisible(false)}
+        <View style={styles.container}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                onScrollBeginDrag={handleScrollStart}
+                onScrollEndDrag={handleScrollEnd}
+                onMomentumScrollBegin={handleScrollStart}
+                onMomentumScrollEnd={handleScrollEnd}
+                scrollEventThrottle={16}
             >
-                <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Apply at:</Text>
-                        <Text style={styles.urlText}>{itemData.url}</Text>
-                        <View style={{ marginBottom: 8 }}>
-                            <Button
-                                title={isValidUrl(itemData.url) ? "Open Link" : "Copy Text"}
-                                onPress={handleButtonPress}
-                            />
-                        </View>
-                        <Button title="Close" onPress={() => setApplyModalVisible(false)} />
-                    </View>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Image source={GoBack} style={styles.goback} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleBookmark}>
+                        <Ionicons
+                            name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+                            size={25}
+                            color={'#9967FE'}
+                        />
+                    </TouchableOpacity>
                 </View>
-            </Modal>
+                <Text style={styles.name}>{itemData.name}</Text>
+                <View style={styles.organization}>
+                    <Image source={require('../../../assets/name.png')} style={styles.organizationIcon} />
+                    <Text style={styles.organizationText}>{itemData.organization ? itemData.organization : itemData.name}</Text>
+                </View>
+                {getImageSource(itemData.image_url) && (
+                    <Image
+                        source={getImageSource(itemData.image_url)}
+                        style={styles.coverImage}
+                    />
+                )}
 
-        </ScrollView>
+                <View style={styles.timeLocation}>
+                    <TimeAndLocation
+                        name={itemData.name}
+                        address={fullAddress}
+                        categories={categoriesText}
+                        organization={itemData.organization}
+                        date={dateText}
+                        contactInfo={contactInfo}
+                        hours={itemData.hours}
+                        isValidCoordinates={isValidCoordinates()}
+                        formattedLatitude={formattedLatitude}
+                        formattedLongitude={formattedLongitude}
+                        fullAddress={fullAddress}
+                    />
+                </View>
+
+                <Text style={styles.title}>
+                    About
+                </Text>
+                <Text style={styles.description}>
+                    {itemData.description ? itemData.description.replaceAll("\\n", "\n") : 'No description provided'}
+                </Text>
+
+                <Text style={styles.title}>
+                    Contact
+                </Text>
+                <View style={styles.contactContainer}>
+                    <TouchableOpacity
+                        style={[styles.button, !itemData.phone && styles.disabledButton]}
+                        onPress={() => itemData.phone && Linking.openURL(`tel:${itemData.phone}`)}
+                        disabled={!itemData.phone}
+                    >
+                        <Ionicons
+                            name={'call-outline'}
+                            size={25}
+                            color={'#9967FE'}
+                        />
+                        <Text style={styles.buttonText}>Call</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.button, !itemData.email && styles.disabledButton]}
+                        onPress={() => itemData.email && Linking.openURL(`mailto:${itemData.email}`)}
+                        disabled={!itemData.email}
+                    >
+                        <Ionicons
+                            name={'mail-outline'}
+                            size={25}
+                            color={'#9967FE'}
+                        />
+                        <Text style={styles.buttonText}>Email</Text>
+                    </TouchableOpacity>
+
+
+                    <TouchableOpacity style={styles.button} onPress={() => { }}>
+                        <Ionicons
+                            name={'chatbox-ellipses-outline'}
+                            size={25}
+                            color={'#9967FE'}
+                        />
+                        <Text style={styles.buttonText}>Chat</Text>
+                    </TouchableOpacity>
+                </View>
+                {/*
+                <TouchableOpacity
+                    style={styles.applyButton}
+                    onPress={() => setApplyModalVisible(true)}>
+                    <Text style={styles.applyButtonText}>Apply Now!</Text>
+                </TouchableOpacity>
+                */}
+
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={applyModalVisible} // Controlled by applyModalVisible
+                    onRequestClose={() => setApplyModalVisible(false)}
+                >
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <Text style={styles.modalText}>Apply at:</Text>
+                            <Text style={styles.urlText}>{itemData.url}</Text>
+                            <View style={{ marginBottom: 8 }}>
+                                <Button
+                                    title={isValidUrl(itemData.url) ? "Open Link" : "Copy Text"}
+                                    onPress={handleButtonPress}
+                                />
+                            </View>
+                            <Button title="Close" onPress={() => setApplyModalVisible(false)} />
+                        </View>
+                    </View>
+                </Modal>
+
+            </ScrollView>
+
+            <Animated.View style={[styles.buttonContainer, { opacity: fadeAnim }]}>
+                <TouchableOpacity
+                    style={styles.applyButton}
+                    onPress={() => console.log("Apply Now Pressed")}
+                >
+                    <Text style={styles.applyButtonText}>Apply Now!</Text>
+                </TouchableOpacity>
+            </Animated.View>
+        </View>
     );
-}
-
-const storeData = async (value) => {
-    try {
-        const jsonValue = JSON.stringify(value)
-        await AsyncStorage.setItem('@bookmark_key', jsonValue)
-    } catch (e) {
-        // saving error
-    }
-}
-
-const getData = async () => {
-    try {
-        const jsonValue = await AsyncStorage.getItem('@bookmark_key')
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (e) {
-        // error reading value
-    }
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    scrollContent: {
+        paddingBottom: 100,
         paddingHorizontal: 30,
+    },
+    buttonContainer: {
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        alignItems: 'center',
     },
     header: {
         flexDirection: 'row',
@@ -459,27 +496,18 @@ const styles = StyleSheet.create({
     },
     applyButton: {
         backgroundColor: '#884EFE',
-        paddingVertical: 10,
+        paddingVertical: 15,
+        paddingHorizontal: 40,
         borderRadius: 10,
         alignSelf: 'center',
         marginBottom: 20,
         width: '100%',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-        shadowOpacity: 0.5,
-        shadowRadius: 3.84,
-        elevation: 5,
-        overflow: 'hidden',
     },
     applyButtonText: {
         color: 'white',
         fontSize: 20,
         alignSelf: 'center',
         fontWeight: '400',
-        marginVertical: 5,
     },
     recordButton: {
         backgroundColor: colors.primary, // Use your theme color
