@@ -85,12 +85,18 @@ const ResultsList = ({ title, results, navigation }) => {
                 source={imageSrc}
                 style={styles.backgroundImage}
               >
-                <View style={styles.topContainer}>
-                  <View style={styles.hoursContainer}>
-                    <Text style={styles.hours}>{item.hours || 'Unlimited'} hours</Text>
+                <ImageBackground
+                  source={require('../../assets/NewVersion/listCover.png')}
+                  style={styles.coverImage}
+                  imageStyle={styles.coverImageStyle}
+                >
+                  <View style={styles.topContainer}>
+                    <View style={styles.hoursContainer}>
+                      <Text style={styles.hours}>{item.hours || 'Unlimited'} hours</Text>
+                    </View>
+                    <BookmarkButton item={item} />
                   </View>
-                  <BookmarkButton item={item} />
-                </View>
+                </ImageBackground>
               </ImageBackground>
 
               {/* Bottom Part: Details */}
@@ -130,6 +136,12 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     height: 100,
+  },
+  coverImage: {
+    height: 100,
+  },
+  coverImageStyle: {
+    opacity: 0.6,// Match the borderRadius of the categoryItem
   },
   topContainer: {
     justifyContent: 'space-between', // Ensures space between hours and bookmark

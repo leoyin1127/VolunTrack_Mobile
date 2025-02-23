@@ -17,12 +17,12 @@ const InterestsOptions = [
     { name: 'Fundraising', image: require('../../assets/NewVersion/Mail.png') },
 ];
 
-const InterestsPicker = ({ onInterestsSelect }) => {
+const InterestsPicker = () => {
     const [selectedInterests, setSelectedInterests] = useState([]);
 
     useEffect(() => {
         const loadSelectedInterests = async () => {
-            const interests = await AsyncStorage.getItem('selectedInterests');
+            const interests = await AsyncStorage.getItem('@selectedInterests');
             if (interests) {
                 setSelectedInterests(JSON.parse(interests));
             }
@@ -32,9 +32,8 @@ const InterestsPicker = ({ onInterestsSelect }) => {
 
     const handleSave = async () => {
         try {
-            await AsyncStorage.setItem('selectedInterests', JSON.stringify(selectedInterests));
+            await AsyncStorage.setItem('@selectedInterests', JSON.stringify(selectedInterests));
             Alert.alert("Success", "Interests Updated Successfully");
-            onInterestsSelect(selectedInterests);
         } catch (error) {
             console.error("Error updating interests:", error);
             Alert.alert("Error", "Failed to update interests");
@@ -47,11 +46,16 @@ const InterestsPicker = ({ onInterestsSelect }) => {
         );
     };
 
+    const handleReset = async () => {
+        setSelectedInterests([]);
+        await AsyncStorage.removeItem('@selectedInterests');
+      };
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Interests</Text>
-                <TouchableOpacity onPress={() => setSelectedInterests([])} style={styles.resetButton}>
+                <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
                     <Ionicons name={'reload-outline'} size={25} color={'#000000'} />
                 </TouchableOpacity>
             </View>

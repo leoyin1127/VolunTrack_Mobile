@@ -137,15 +137,15 @@ const SignInScreen = ({ navigation, route }) => {
 
         <View style={styles.inputContainer}>
             <TextInput
-            placeholder="Password"
-            placeholderTextColor="#aaaaaa"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={passwordVisibility}
-            style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#aaaaaa"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={passwordVisibility}
+                style={styles.input}
             />
             <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-                <Image source={Eye} style={styles.icon} />
+                <Image source={Eye} style={[styles.icon, { tintColor: passwordVisibility ? '#aaaaaa' : '#884efe' }]} />
             </TouchableOpacity>
         </View>
 
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     icon: {
-        marginRight: 10,
+        marginHorizontal: 5,
     },
     checkIcon: {
         width: 20,
@@ -355,8 +355,8 @@ const styles = StyleSheet.create({
         width: "100%",
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 20,
-        marginTop: 10,
+        marginBottom: 25,
+        marginTop: 5,
     },
     socialContainer: {
         justifyContent: 'center',

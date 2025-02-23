@@ -10,11 +10,11 @@ import AboutUsScreen from './src/screens/AboutUsScreen';
 import BookmarkedScreen from './src/screens/BookmarkedScreen';
 import HomepageScreen from './src/screens/HomepageScreen';
 import IndividualMailScreen from './src/screens/IndividualMailScreen';
-import MailScreen from './src/screens/MailScreen'; 
-import SearchScreen from './src/screens/SearchScreen'; 
-import VolunteeringScreen from './src/screens/VolunteeringScreen'; 
-import ProfileSettingScreen from './src/screens/ProfileSettingScreen'; 
-import HomepageSettingScreen from './src/screens/HomepageSettingScreen'; 
+import MailScreen from './src/screens/MailScreen';
+import SearchScreen from './src/screens/SearchScreen';
+import VolunteeringScreen from './src/screens/NewVersion/VolunteeringScreen';
+import ProfileSettingScreen from './src/screens/ProfileSettingScreen';
+import HomepageSettingScreen from './src/screens/HomepageSettingScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SignInScreen from './src/screens/NewVersion/SignInScreen';
 import SignUpScreen from './src/screens/NewVersion/SignUpScreen';
@@ -39,9 +39,9 @@ const MailStack = createNativeStackNavigator();
 const MailStackScreen = () => {
   return (
     <MailStack.Navigator>
-      <MailStack.Screen 
-        name="Mail" 
-        component={MailScreen} 
+      <MailStack.Screen
+        name="Mail"
+        component={MailScreen}
         options={{ headerShown: false }} // Hides the header for the Mail screen
       />
       <MailStack.Screen name="IndividualMail" component={IndividualMailScreen} />
@@ -115,7 +115,7 @@ export default function App() {
         <RootStack.Screen
           name="AboutUsScreen"
           component={AboutUsScreen}
-          options={{ 
+          options={{
             headerShown: true,
             title: 'About Us'
           }}
@@ -124,7 +124,7 @@ export default function App() {
           name="VolunteeringScreen"
           component={VolunteeringScreen}
           options={{
-            headerShown: true,
+            headerShown: false,
             title: 'Volunteering Details'
           }}
         />
@@ -200,6 +200,14 @@ export default function App() {
             title: 'Edit your location'
           }}
         />
+        <RootStack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            headerShown: true,
+            title: 'Edit your location'
+          }}
+        />
         {/* <RootStack.Screen
           name="SignInUpScreen"
           component={SignInUpScreen}
@@ -215,7 +223,7 @@ export default function App() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: '#FFFFFF',
-    paddingBottom: 5, 
+    paddingBottom: 5,
     height: 60,
     paddingTop: 5
   }
@@ -234,11 +242,11 @@ import AboutUsScreen from './src/screens/AboutUsScreen';
 import BookmarkedScreen from './src/screens/BookmarkedScreen';
 import HomepageScreen from './src/screens/HomepageScreen';
 import IndividualMailScreen from './src/screens/IndividualMailScreen';
-import MailScreen from './src/screens/MailScreen'; 
-import SearchScreen from './src/screens/SearchScreen'; 
-import VolunteeringScreen from './src/screens/VolunteeringScreen'; 
-import ProfileSettingScreen from './src/screens/ProfileSettingScreen'; 
-import HomepageSettingScreen from './src/screens/HomepageSettingScreen'; 
+import MailScreen from './src/screens/MailScreen';
+import SearchScreen from './src/screens/SearchScreen';
+import VolunteeringScreen from './src/screens/VolunteeringScreen';
+import ProfileSettingScreen from './src/screens/ProfileSettingScreen';
+import HomepageSettingScreen from './src/screens/HomepageSettingScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SignInScreen from './src/screens/NewVersion/SignInScreen';
 import SignUpScreen from './src/screens/NewVersion/SignUpScreen';
@@ -263,9 +271,9 @@ const MailStack = createNativeStackNavigator();
 const MailStackScreen = () => {
   return (
     <MailStack.Navigator>
-     <MailStack.Screen 
-        name="Mail" 
-        component={MailScreen} 
+     <MailStack.Screen
+        name="Mail"
+        component={MailScreen}
         options={{ headerShown: false }} // Hides the header for the Mail screen
       />
       <MailStack.Screen name="IndividualMail" component={IndividualMailScreen} />
@@ -342,7 +350,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-        {hasCompletedOnboarding ? ( 
+        {hasCompletedOnboarding ? (
           <RootStack.Navigator>
             <RootStack.Screen
               name="Main"
@@ -352,7 +360,7 @@ export default function App() {
             <RootStack.Screen
               name="AboutUsScreen"
               component={AboutUsScreen}
-              options={{ 
+              options={{
                 headerShown: true,
                 title: 'About Us'
               }}

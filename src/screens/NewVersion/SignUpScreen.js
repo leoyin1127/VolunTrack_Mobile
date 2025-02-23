@@ -35,6 +35,7 @@ const SignUpScreen = ({ navigation }) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [agreeToTerms, setAgreeToTerms] = useState(false);
     const [passwordVisibility, setPasswordVisibility] = useState(true); // Password initially hidden
+    const [rePasswordVisibility, setRePasswordVisibility] = useState(true);
     const [isEmailValid, setIsEmailValid] = useState(null); // null, true, or false
     const [verificationEmailSent, setVerificationEmailSent] = useState(false);
     const [loading, setLoading] = useState(false); // Loading state
@@ -92,6 +93,10 @@ const SignUpScreen = ({ navigation }) => {
         setPasswordVisibility(!passwordVisibility);
     };
 
+    const toggleRePasswordVisibility = () => {
+        setRePasswordVisibility(!rePasswordVisibility);
+    };
+
     const handleEmailChange = (text) => {
         setEmail(text);
         setIsEmailValid(emailValidator(text));
@@ -137,7 +142,7 @@ const SignUpScreen = ({ navigation }) => {
                 style={styles.input}
                 />
                 <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-                    <Image source={Eye} style={styles.icon} />
+                    <Image source={Eye} style={[styles.icon, { tintColor: passwordVisibility ? '#aaaaaa' : '#884efe' }]} />
                 </TouchableOpacity>
             </View>
 
@@ -149,11 +154,11 @@ const SignUpScreen = ({ navigation }) => {
                 placeholderTextColor="#aaaaaa"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                secureTextEntry={passwordVisibility}
+                secureTextEntry={rePasswordVisibility}
                 style={styles.input}
                 />
-                <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-                    <Image source={Eye} style={styles.icon} />
+                <TouchableOpacity onPress={toggleRePasswordVisibility} style={styles.iconContainer}>
+                    <Image source={Eye} style={[styles.icon, { tintColor: rePasswordVisibility ? '#aaaaaa' : '#884efe' }]} />
                 </TouchableOpacity>
             </View>
 
@@ -248,7 +253,7 @@ const SignUpScreen = ({ navigation }) => {
                                 8. Termination We may suspend or terminate your access to the app for violating these terms or for other reasons at our discretion.                            
                             </Text>
                             <Text style={styles.modalText}>
-                                9. Contact Us If you have any questions about these Terms and Conditions, please contact us at [Insert Contact Information]. By clicking "Agree" or continuing to use the app, you confirm your acceptance of these terms.
+                                9. Contact Us If you have any questions about these Terms and Conditions, please contact us at info@voluntracks.com. By clicking "Agree" or continuing to use the app, you confirm your acceptance of these terms.
                             </Text>
                         </ScrollView>
                         <View style={styles.checkboxContainer}>
@@ -448,8 +453,8 @@ const styles = StyleSheet.create({
         width: "100%",
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 20,
-        marginTop: 10,
+        marginBottom: 25,
+        marginTop: 5,
     },
     socialContainer: {
         justifyContent: 'center',

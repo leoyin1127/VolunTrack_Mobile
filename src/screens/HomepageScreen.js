@@ -15,21 +15,38 @@ const HomepageScreen = ({ navigation }) => {
     const [selectedCity, setSelectedCity] = useState('');
     const [searchApi, results, errorMessage] = useSearchApi();
     const [filteredResults, setFilteredResults] = useState([]);
-    const [userHobbies, setUserHobbies] = useState([]);
-    const [filterByHobbies, setFilterByHobbies] = useState(true);
 
     const [isLoading, setIsLoading] = useState(false);
 
-    const initialLoadRef = useRef(true); // Ref to track the initial load
+    const initialLoadRef = useRef(true);
 
     const [currentUser, setCurrentUser] = useState(null);
 
     const [refreshing, setRefreshing] = useState(false);
 
+    const [selectedStartDate, setSelectedStartDate] = useState(null);
+    const [selectedEndDate, setSelectedEndDate] = useState(null);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const hasActiveFilters = term || selectedCity || selectedStartDate || selectedEndDate || selectedCategories.length > 0;
+
+    const formatDate = (date) => date ? new Date(date).toLocaleDateString() : '';
+
+    const filterText = () => {
+        const filters = [];
+        if (selectedCity) filters.push(`City: ${selectedCity}`);
+        if (selectedStartDate && selectedEndDate) {
+            filters.push(`Date: ${formatDate(selectedStartDate)} - ${formatDate(selectedEndDate)}`);
+        }
+        if (selectedCategories.length > 0) {
+            filters.push(`Categories: ${selectedCategories.join(', ')}`);
+        }
+        return filters.join(' | ');
+    };
+
     const refreshResults = useCallback(() => {
         setRefreshing(true);
         searchApi(term, selectedCity).then(() => {
-            setRefreshing(false); // Stop the refreshing indicator
+            setRefreshing(false);
         });
     }, [term, selectedCity, searchApi]);
 
@@ -40,9 +57,7 @@ const HomepageScreen = ({ navigation }) => {
                 if (storedUserData) {
                     const userData = JSON.parse(storedUserData);
                     setCurrentUser(userData);
-                    setUserHobbies(userData.hobbies);
                 } else {
-                    // Optionally fetch from Firestore if needed or handle user not found
                 }
             };
             fetchUserData();
@@ -51,69 +66,99 @@ const HomepageScreen = ({ navigation }) => {
 
     useFocusEffect(
         useCallback(() => {
-        if (initialLoadRef.current) {
-            const performSearch = async () => {
-            setIsLoading(true); // Start loading
-            await searchApi('volunteer', selectedCity); // Perform the search with the default term
-            setIsLoading(false); // End loading
-            };
-
-            performSearch();
-            initialLoadRef.current = false; // Set to false after initial load
-        }
-        }, [selectedCity]) // Dependency on selectedCity if you want to filter by city as well
+            if (initialLoadRef.current) {
+                const performSearch = async () => {
+                    setIsLoading(true);
+                    await searchApi('volunteer', selectedCity);
+                    setIsLoading(false);
+                };
+                performSearch();
+                initialLoadRef.current = false;
+            }
+        }, [selectedCity])
     );
 
-    const normalizeString = (inputString) => {
-        return inputString.toLowerCase();
-    };
-    
+    useFocusEffect(
+        useCallback(() => {
+            const loadFilters = async () => {
+                const interestsFilter = await AsyncStorage.getItem('@selectedInterests');
+                const startDateFilter = await AsyncStorage.getItem('@selectedStartDate');
+                const endDateFilter = await AsyncStorage.getItem('@selectedEndDate');
+                const cityFilter = await AsyncStorage.getItem('@selectedCity');
+            
+                setSelectedCity(cityFilter || '');
+                setSelectedStartDate(startDateFilter || null);
+                setSelectedEndDate(endDateFilter || null);
+                setSelectedCategories(interestsFilter ? JSON.parse(interestsFilter) : []);
+
+                refreshResults();
+            };            
+            loadFilters();
+        }, [])
+      );
+
+    useEffect(() => {
+        refreshResults();
+    }, [selectedCity, selectedStartDate, selectedEndDate, selectedCategories]);
+            
+
+    const normalizeString = (inputString) => inputString.toLowerCase();
+
     const getCategoriesText = (categories) => {
-        if (typeof categories === 'string') {
-            return categories;  // If it's already a string, return it as is
-        } else if (Array.isArray(categories)) {
-            // If it's an array, assume it's an array of objects with a 'title' key
+        if (typeof categories === 'string') return categories;
+        if (Array.isArray(categories)) {
             return categories.map(cat => cat.title).join(', ');
         }
-        return '';  // Return an empty string if neither
+        return '';
     };
-    
+
     useEffect(() => {
-        let cityResults = results;
-    
+        let updatedResults = results;
+
         if (selectedCity) {
-            cityResults = cityResults.filter(
-                result => (result.location && result.location.city === selectedCity) || (result.city === selectedCity)
+            updatedResults = updatedResults.filter(
+                result => (result.location?.city === selectedCity || result.city === selectedCity)
             );
         }
-    
+
         if (term) {
             const lowerCaseTerm = normalizeString(term);
-            cityResults = cityResults.filter(
-                result => {
-                    const name = result.name ? normalizeString(result.name) : '';
-                    const location = result.location && result.location.city ? normalizeString(result.location.city) : '';
-                    const city = result.city ? normalizeString(result.city) : '';
-                    return name.includes(lowerCaseTerm) || location.includes(lowerCaseTerm) || city.includes(lowerCaseTerm);
-                }
-            );
-        }
-    
-        if (userHobbies.length > 0 && filterByHobbies) {
-            cityResults = cityResults.filter(result => {
-                const categoriesText = result.categories ? getCategoriesText(result.categories) : '';
-                const normalizedCategories = normalizeString(categoriesText);
-                return userHobbies.some(hobby => normalizedCategories.includes(normalizeString(hobby)));
+            updatedResults = updatedResults.filter(result => {
+                const name = result.name ? normalizeString(result.name) : '';
+                const location = result.location?.city ? normalizeString(result.location.city) : '';
+                const city = result.city ? normalizeString(result.city) : '';
+                return name.includes(lowerCaseTerm) || location.includes(lowerCaseTerm) || city.includes(lowerCaseTerm);
             });
         }
-    
-        setFilteredResults(cityResults);
-    }, [selectedCity, term, results, userHobbies, filterByHobbies]);
+
+        if (selectedStartDate && selectedEndDate) {
+            updatedResults = updatedResults.filter(result => {
+                const eventDate = new Date(result.date);
+                const start = new Date(selectedStartDate);
+                const end = new Date(selectedEndDate);
+                return eventDate >= start && eventDate <= end;
+            });
+        }
+
+        if (selectedCategories.length > 0) {
+            updatedResults = updatedResults.filter(result => {
+                const categoriesText = getCategoriesText(result.categories);
+                return selectedCategories.some(cat => categoriesText.includes(cat));
+            });
+        }
+
+        setFilteredResults(updatedResults);
+        console.log(selectedCity, selectedStartDate, selectedEndDate, selectedCategories)
+    }, [selectedCity, term, results, selectedCategories, selectedStartDate, selectedEndDate]);
 
     const handleSearchSubmit = async () => {
-        await searchApi(term, selectedCity); // Perform the search
+        await searchApi(term, selectedCity);
     };
-    
+
+    const openSettings = () => {
+        navigation.navigate('HomepageSettingScreen');
+    };
+
     return (
         <ScrollView
             style={styles.scrollView}
@@ -131,18 +176,10 @@ const HomepageScreen = ({ navigation }) => {
                 </TouchableOpacity>
                 <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5 }}>
                     <TouchableOpacity>
-                        <Ionicons             
-                            name={'search-outline'} 
-                            size={30}
-                            color={'#000000'} 
-                        />
+                        <Ionicons name={'search-outline'} size={30} color={'#000000'} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={{marginLeft: 5}} onPress={() => navigation.navigate('HomepageSettingScreen')}>
-                        <Ionicons             
-                            name={'options-outline'} 
-                            size={30}
-                            color={'#000000'} 
-                        />
+                    <TouchableOpacity style={{ marginLeft: 5 }} onPress={openSettings}>
+                        <Ionicons name={'options-outline'} size={30} color={'#000000'} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -151,17 +188,18 @@ const HomepageScreen = ({ navigation }) => {
                 onTermChange={setTerm}
                 onTermSubmit={handleSearchSubmit}
             />
-            <Categories />
-            <Text style={styles.text}>Recommended Jobs</Text>
+            {!hasActiveFilters && <Categories />}
+            <Text style={styles.text}>{hasActiveFilters ? 'Filtered Results' : 'Recommended Jobs'}</Text>
+            {(hasActiveFilters && !term) && (
+                <Text style={styles.filterSummary}>{filterText()}</Text>
+            )}            
             {isLoading ? (
-                <ActivityIndicator style={{margin: 30}} size="large" color={colors.primary} />
+                <ActivityIndicator style={{ margin: 30 }} size="large" color={colors.primary} />
             ) : (
                 <ResultsList results={filteredResults} navigation={navigation} />
             )}
             {!isLoading && filteredResults.length === 0 && (
-                <Text style={styles.noResultsMessage}>
-                    No results found.
-                </Text>
+                <Text style={styles.noResultsMessage}>No results found.</Text>
             )}
         </ScrollView>
     );
@@ -178,6 +216,13 @@ const styles = StyleSheet.create({
         marginTop: 10,
         color: '#000000',
         fontWeight: 'bold',
+    },
+    filterSummary: {
+        marginLeft: 15,
+        marginTop: 5,
+        color: '#555',
+        fontSize: 14,
+        fontStyle: 'italic',
     },
     topBar: {
         flexDirection: 'row',

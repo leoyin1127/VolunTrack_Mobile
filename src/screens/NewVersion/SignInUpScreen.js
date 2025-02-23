@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     signInButtonText: {
         color: 'white',
         fontSize: 18,
-        fontWeight: '450',
+        fontWeight: "400",
     },
     createAccountButton: {
         borderWidth: 1,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     createAccountButtonText: {
         color: '#000',
         fontSize: 18,
-        fontWeight: '450',
+        fontWeight: '400',
     },
 });
 

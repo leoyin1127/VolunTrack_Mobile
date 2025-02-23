@@ -8,20 +8,6 @@ import InterestsPicker from '../components/InterestPicker';
 import GoBack from '../../assets/NewVersion/GoBack.png';
 
 const HomepageSettingsScreen = ({ navigation }) => {
-  const [selectedCity, setSelectedCity] = useState('');
-
-  const handleDateSelect = (startDate, endDate) => {
-    console.log('Selected Period:', startDate, endDate);
-    // Handle the selected date or period here
-  };
-
-  const handleLocationSelect = (location) => {
-    console.log('Selected location: ', location);
-  }
-
-  const handleInterestsSelect = (interests) => {
-    console.log('Selected Interests: ', interests);
-  }
 
   return (
     <ScrollView style={styles.container}>
@@ -33,9 +19,9 @@ const HomepageSettingsScreen = ({ navigation }) => {
         <Text style={styles.title}>Filter Events</Text>
       </View>
       {/* Date Picker */}
-      <DatePicker onDateSelect={handleDateSelect} />
-      <LocationPicer onLocationSelect={handleLocationSelect}/>
-      <InterestsPicker onInterestsSelect={handleInterestsSelect}/>
+      <DatePicker/>
+      <LocationPicer/>
+      <InterestsPicker/>
     </ScrollView>
   );
 };
@@ -49,7 +35,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 10,
     marginBottom: 20,
   },
   backButton: {
@@ -70,6 +56,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black', // Use your primary color
     marginLeft: -30, // Adjust to center the title properly
+  },
+  applyButton: {
+    marginTop: 20,
+    backgroundColor: '#6200EE',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

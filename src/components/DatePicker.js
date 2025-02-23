@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DatePicker = ({ onDateSelect }) => {
+const DatePicker = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [periodStart, setPeriodStart] = useState('');
   const [periodEnd, setPeriodEnd] = useState('');
+
+  // Load saved dates on component mount
+  useEffect(() => {
+    const loadSavedDates = async () => {
+      try {
+        const storedStart = await AsyncStorage.getItem('@selectedStartDate');
+        const storedEnd = await AsyncStorage.getItem('@selectedEndDate');
+        if (storedStart) setPeriodStart(storedStart);
+        if (storedEnd) setPeriodEnd(storedEnd);
+      } catch (error) {
+        console.error('Failed to load saved dates:', error);
+      }
+    };
+    loadSavedDates();
+  }, []);
 
   // Configure locale (optional)
   LocaleConfig.locales['en'] = {
@@ -36,10 +52,22 @@ const DatePicker = ({ onDateSelect }) => {
     setSelectedDate(day.dateString);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setPeriodStart('');
     setPeriodEnd('');
     setSelectedDate('');
+    await AsyncStorage.removeItem('@selectedStartDate');
+    await AsyncStorage.removeItem('@selectedEndDate');
+  };
+
+  // Save selected dates to AsyncStorage
+  const saveDates = async () => {
+    try {
+      await AsyncStorage.setItem('@selectedStartDate', periodStart);
+      await AsyncStorage.setItem('@selectedEndDate', periodEnd || periodStart);
+    } catch (error) {
+      console.error('Failed to save dates:', error);
+    }
   };
 
   // Mark selected period
@@ -86,9 +114,9 @@ const DatePicker = ({ onDateSelect }) => {
         theme={{
           selectedDayBackgroundColor: '#F6F1FF',
           todayTextColor: 'black',
-          arrowColor: '#884EFE', 
+          arrowColor: '#884EFE',
         }}
-        style={{marginVertical: 15}}
+        style={{ marginVertical: 15 }}
       />
       {/* Bottom Line */}
       <View style={styles.line} />
@@ -99,7 +127,7 @@ const DatePicker = ({ onDateSelect }) => {
       </View>
       <TouchableOpacity
         style={styles.confirmButton}
-        onPress={() => onDateSelect(periodStart, periodEnd)}
+        onPress={saveDates}
       >
         <Text style={styles.confirmButtonText}>Confirm Selection</Text>
       </TouchableOpacity>
